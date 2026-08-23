@@ -28,3 +28,21 @@
 - **Error:** Bases Cognitivas propone modo claro crema `#FAF8F5`/texto `#1A1A1A`; la Guía de Diseño define Minimal Light `#F8F9FA`/`#1F2328`. Sin decisión, cada sesión podría implementar colores distintos.
 - **Corrección:** Se declaró a `docs/07-guia-diseno-ui.md` fuente de verdad visual (es más específica y posterior); la diferencia quedó anotada en ese documento.
 - **Lección:** Cuando dos documentos fuente entran en conflicto, nombrar una jerarquía explícita de autoridad en AGENTS.md y registrar la discrepancia donde vive el dato.
+
+### 2026-08-23 — create-next-app no arranca en carpetas con archivos
+- **Contexto:** Scaffold del proyecto en la raíz del repo, que ya tenía docs/ y README.
+- **Error:** Ejecutar el instalador directamente en la raíz habría fallado por archivos existentes.
+- **Corrección:** Se creó el proyecto en carpeta temporal fuera del repo y luego se copiaron solo los archivos del scaffold (sin pisar README/.gitignore propios) y se corrió `npm install` en la raíz.
+- **Lección:** Los instaladores interactivos exigen carpetas limpias: generar afuera y mover adentro es más seguro que borrar cosas del repo.
+
+### 2026-08-23 — Next.js 16 trae reglas del React Compiler que cambian cómo escribir componentes
+- **Contexto:** Primer build del MVP; lint fallaba con 4 errores nuevos (`react-hooks/immutability`, setState síncrono en effects).
+- **Error:** (1) Mutar una variable local (`let running`) dentro de `.map()` durante el render; (2) leer localStorage y hacer setState síncrono dentro de `useEffect`; (3) mutar `document.documentElement` desde una función definida dentro del componente (el compilador la considera potencialmente parte del render).
+- **Corrección:** (1) Precomputar estructuras derivadas con Map/flatMap antes del JSX; (2) usar inicialización perezosa de estado `useState(() => ...)` con guard `typeof window === "undefined"` + `suppressHydrationWarning`; (3) mover funciones que tocan el DOM a nivel de módulo, fuera del componente.
+- **Lección:** En proyectos nuevos con React 19/Next 16, diseñar los componentes "compiler-safe" desde el inicio: nada de mutaciones durante render ni efectos que solo inicialicen estado; preferir lazy init y helpers a nivel módulo.
+
+### 2026-08-23 — El CLI de shadcn actual ya no usa --base-color
+- **Contexto:** Inicialización de Shadcn UI sobre Tailwind v4.
+- **Error:** La opción documentada en tutoriales (`--base-color neutral`) ya no existe; además el CLI lanza prompts interactivos si falta un flag, lo que cuelga sesiones automatizadas.
+- **Corrección:** Consultar `--help` primero; usar `init -y -b radix -p nova`. Regla general: siempre correr `<cli> --help` antes de confiar en flags de memoria.
+- **Lección:** Las CLIs de frontend cambian rápido: verificar ayuda del comando instalado, no la documentación recordada.

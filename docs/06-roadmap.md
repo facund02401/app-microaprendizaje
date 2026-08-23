@@ -5,9 +5,9 @@
 
 ## FASE 1: MVP Estático & Mockup (1-2 semanas)
 
-- [ ] Configuración de Next.js + Tailwind CSS.
-- [ ] Pantalla E-reader con datos hardcodeados o de prueba.
-- [ ] Ajuste de tipografía, márgenes y experiencia visual.
+- [x] Configuración de Next.js + Tailwind CSS.
+- [x] Pantalla E-reader con datos hardcodeados o de prueba.
+- [x] Ajuste de tipografía, márgenes y experiencia visual. *(pulido fino pendiente de feedback de uso)*
 
 ## FASE 2: Integración Backend & API IA (2-3 semanas)
 
@@ -28,9 +28,9 @@
 
 | Etapa | Estado |
 |---|---|
-| Documentación y cimientos del repo | 🟡 En curso |
-| Investigación UX/UI complementaria | ⚪ Pendiente |
-| FASE 1: MVP estático | ⚪ Pendiente |
+| Documentación y cimientos del repo | ✅ Completa |
+| Investigación UX/UI complementaria | ✅ Completa (`docs/08`) |
+| FASE 1: MVP estático | ✅ Completa (v1 funcional con datos mock) |
 | FASE 2: Backend & IA | ⚪ Pendiente |
 | FASE 3: Diálogo activo | ⚪ Pendiente |
 

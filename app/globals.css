@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Nodos — Sistema de diseño (fuente de verdad: docs/07-guia-diseno-ui.md)
+  Temas vía data-theme en <html>: dark (default) · sepia · light
+*/
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-editor: var(--editor);
+  /* Serif de lectura desde fuentes de sistema: cero descarga y cero flash (decisión D6) */
+  --font-serif: Charter, "Bitstream Charter", Merriweather, Georgia, serif;
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+/* Tema por defecto (fallback): Minimal Light */
+:root {
+  --background: #f8f9fa;
+  --foreground: #1f2328;
+  --card: #ffffff;
+  --card-foreground: #1f2328;
+  --popover: #ffffff;
+  --popover-foreground: #1f2328;
+  --primary: #1f2328;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f4;
+  --secondary-foreground: #1f2328;
+  --muted: #eef1f4;
+  --muted-foreground: #59636e;
+  --accent: #e7ebef;
+  --accent-foreground: #1f2328;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #d0d7de;
+  --input: #d0d7de;
+  --ring: #8c959f;
+  --radius: 0.375rem;
+  --sidebar: #f0f3f6;
+  --sidebar-foreground: #1f2328;
+  --sidebar-primary: #1f2328;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7ebef;
+  --sidebar-accent-foreground: #1f2328;
+  --sidebar-border: #d0d7de;
+  --sidebar-ring: #8c959f;
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #d0d7de;
+}
+
+/* Dark IDE / Tokyo Night (tema predeterminado del proyecto) */
+.dark,
+[data-theme="dark"] {
+  --background: #1e1e2e;
+  --foreground: #cdd6f4;
+  --card: #181825;
+  --card-foreground: #cdd6f4;
+  --popover: #313244;
+  --popover-foreground: #cdd6f4;
+  --primary: #89b4fa;
+  --primary-foreground: #1e1e2e;
+  --secondary: #313244;
+  --secondary-foreground: #cdd6f4;
+  --muted: #313244;
+  --muted-foreground: #9399b2;
+  --accent: #313244;
+  --accent-foreground: #cdd6f4;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #45475a;
+  --input: #45475a;
+  --ring: #89b4fa;
+  --sidebar: #181825;
+  --sidebar-foreground: #cdd6f4;
+  --sidebar-primary: #89b4fa;
+  --sidebar-primary-foreground: #1e1e2e;
+  --sidebar-accent: #313244;
+  --sidebar-accent-foreground: #cdd6f4;
+  --sidebar-border: #45475a;
+  --sidebar-ring: #89b4fa;
+  --tooltip-bg: #313244;
+  --tooltip-border: #45475a;
+}
+
+/* Paper Sepia */
+[data-theme="sepia"] {
+  --background: #f4efea;
+  --foreground: #2d2b2a;
+  --card: #faf7f2;
+  --card-foreground: #2d2b2a;
+  --popover: #efe7db;
+  --popover-foreground: #2d2b2a;
+  --primary: #8c4a2b;
+  --primary-foreground: #faf7f2;
+  --secondary: #eae2d8;
+  --secondary-foreground: #2d2b2a;
+  --muted: #eae2d8;
+  --muted-foreground: #6b6259;
+  --accent: #eae2d8;
+  --accent-foreground: #2d2b2a;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #ddd2c4;
+  --input: #ddd2c4;
+  --ring: #8c4a2b;
+  --sidebar: #ede6dd;
+  --sidebar-foreground: #2d2b2a;
+  --sidebar-primary: #8c4a2b;
+  --sidebar-primary-foreground: #faf7f2;
+  --sidebar-accent: #eae2d8;
+  --sidebar-accent-foreground: #2d2b2a;
+  --sidebar-border: #ddd2c4;
+  --sidebar-ring: #8c4a2b;
+  --tooltip-bg: #efe7db;
+  --tooltip-border: #ddd2c4;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  /* Transición suave entre temas (principio CtxRead: preservar contexto visual).
+     Se respeta prefers-reduced-motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    html.theme-anim body,
+    html.theme-anim body * {
+      transition:
+        background-color 300ms ease,
+        border-color 300ms ease,
+        color 300ms ease;
+    }
+  }
+
+  /* Scrollbars discretas, estética IDE */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* Término de glosario: subrayado punteado + cursor de ayuda */
+  dfn.glossary-term {
+    font-style: normal;
+    cursor: help;
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--primary);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+  }
+}

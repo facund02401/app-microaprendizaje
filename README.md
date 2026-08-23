@@ -4,7 +4,7 @@ E-reader web de escritorio que fragmenta textos teóricos densos (psicoanálisis
 
 ## Estado del proyecto
 
-🟡 **Etapa formal** — sentando bases: documentación estructurada y sistema de diseño definido. El desarrollo de la primera versión (MVP estático) está comenzando.
+🟢 **Fase 1 completa (MVP estático)**: e-reader funcional con libro de prueba, glosario flotante, mapa de nodos y 3 temas. Siguiente paso: Fase 2 (backend Supabase + ingesta IA).
 
 ## Documentación
 
