@@ -1,0 +1,38 @@
+# Dependencias
+/node_modules
+
+# Next.js build output
+/.next/
+/out/
+
+# Producción
+/build
+
+# Secretos y variables de entorno (NUNCA commitear)
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
