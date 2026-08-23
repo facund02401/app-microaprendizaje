@@ -40,6 +40,7 @@
 - Tres temas con paletas exactas de `docs/07`: Dark IDE/Tokyo Night (**default**), Paper Sepia, Minimal Light. Nunca negro puro sobre blanco puro.
 - Sin distracciones: nada de colores neón, botones flotantes sobre el texto, ni gamificación agresiva.
 - Iconografía discreta de estado: ✓ completado · • en curso · 🔒 bloqueado.
+- **Adaptación móvil (desde v1.1):** escritorio sigue siendo la experiencia primaria, pero <768px el explorador es cajón flotante (nace cerrado, cierra con toque fuera/Esc/al elegir nodo), el glosario abre por toque (Popover híbrido, ver APRENDIZAJES), botones con área táctil ≥40px y altura `100dvh`. Punto de corte: `md` de Tailwind.
 
 ## Flujo de trabajo esperado
 
@@ -52,4 +53,4 @@
 
 ## Fase actual
 
-Ver `docs/06-roadmap.md`. Ahora: **Fase 1 — MVP estático** (datos mock, sin backend).
+Ver `docs/06-roadmap.md`. **Fase 1 — MVP estático: completa**, más adaptación móvil v1.1 (cajón flotante, glosario táctil). Próxima: **Fase 2 — backend Supabase + ingesta con IA** (las cuentas se crean desde cero; ver docs/03 y docs/04).

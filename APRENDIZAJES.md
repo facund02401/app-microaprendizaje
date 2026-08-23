@@ -46,3 +46,15 @@
 - **Error:** La opción documentada en tutoriales (`--base-color neutral`) ya no existe; además el CLI lanza prompts interactivos si falta un flag, lo que cuelga sesiones automatizadas.
 - **Corrección:** Consultar `--help` primero; usar `init -y -b radix -p nova`. Regla general: siempre correr `<cli> --help` antes de confiar en flags de memoria.
 - **Lección:** Las CLIs de frontend cambian rápido: verificar ayuda del comando instalado, no la documentación recordada.
+
+### 2026-08-23 — Los tooltips de Radix no responden al tacto
+- **Contexto:** Adaptación móvil del glosario flotante.
+- **Error:** El componente Tooltip de Radix está diseñado para mouse/teclado; en pantallas táctiles el término no abre de forma confiable con un toque.
+- **Corrección:** Se reemplazó por un Popover controlado con patrón híbrido: en escritorio hover con 200ms de demora y cierre con 150ms de gracia; en móvil el toque alterna abierto/cerrado; teclado con Tab + Enter/Espacio. Se descartó abrir por foco porque focus dispara antes que click y lo cerraba de inmediato.
+- **Lección:** Para elementos que deben funcionar con mouse Y dedo, usar Popover controlado con temporizadores de intención (abrir-lento/cerrar-tardío); nunca combinar apertura por foco con toggle por click en el mismo disparador.
+
+### 2026-08-23 — Estado responsive sin desincronización de hidratación
+- **Contexto:** Cajón flotante del explorador que nace cerrado en móvil pero abierto en escritorio.
+- **Error:** Detectar el ancho de pantalla con `useState(() => window.innerWidth)` produce HTML de servidor distinto al del cliente (error de hidratación); corregirlo con setState síncrono dentro de `useEffect` viola las reglas del React Compiler.
+- **Corrección:** `useSyncExternalStore` sobre `window.matchMedia("(min-width: 768px)")` con snapshot de servidor `true`; la preferencia de localStorage se lee diferida (`setTimeout 0`) en un estado separado que actúa solo como default en escritorio.
+- **Lección:** Para decisiones dependientes del viewport, usar `useSyncExternalStore` + matchMedia: React resuelve la diferencia servidor/cliente sin warnings ni efectos síncronos.

@@ -4,7 +4,7 @@ E-reader web de escritorio que fragmenta textos teóricos densos (psicoanálisis
 
 ## Estado del proyecto
 
-🟢 **Fase 1 completa (MVP estático)**: e-reader funcional con libro de prueba, glosario flotante, mapa de nodos y 3 temas. Siguiente paso: Fase 2 (backend Supabase + ingesta IA).
+🟢 **Fase 1 completa (MVP estático) + adaptación móvil (v1.1)**: e-reader funcional con libro de prueba, glosario flotante (mouse y táctil), mapa de nodos, 3 temas y soporte para pantallas chicas. Siguiente paso: Fase 2 (backend Supabase + ingesta IA).
 
 ## Documentación
 

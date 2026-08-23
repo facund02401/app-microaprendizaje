@@ -54,12 +54,13 @@ export function ThemeToggle() {
             applyTheme(value);
           }}
           className={cn(
-            "rounded-sm px-1.5 py-1 text-muted-foreground",
+            "rounded-sm px-2 py-1.5 text-muted-foreground",
             "focus-visible:outline-2 focus-visible:outline-ring/60",
+            "md:px-1.5 md:py-1",
             theme === value && "bg-muted text-foreground"
           )}
         >
-          <Icon className="size-3.5" />
+          <Icon className="size-4 md:size-3.5" />
         </button>
       ))}
     </div>

@@ -57,7 +57,7 @@ export function ReflectionBox({ node }: Props) {
         <Button
           onClick={() => setSaved(true)}
           disabled={value.trim().length === 0}
-          className="font-sans"
+          className="h-10 px-4 font-sans sm:h-9"
         >
           Guardar reflexión
         </Button>
