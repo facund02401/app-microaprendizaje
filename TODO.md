@@ -15,6 +15,7 @@
 - Migración automática de conceptos guardados antes de existir estados → pasan a `explicado`.
 - Cierra la tarjeta: Esc, × o scroll; una nueva selección reinicia el flujo.
 - Pestaña renombrada de "Banco" a "Banco de conceptos".
+- **Jerarquía del Banco (T2, 2026-08-23):** agrupado por Libro → Capítulo → Nodo con encabezados monoespaciados tipo IDE; capítulos ordenados por posición del nodo más temprano, términos por fecha descendente; cada libro es plegable (nace abierto) con contador.
 
 ### ⚪ Falta implementar
 
@@ -22,7 +23,8 @@
 |---|-------|----------------|------------|
 | T4 | **Explicación real con IA** | Ruta interna `/api/concept`: recibe término + párrafo + ubicación, llama a Claude Haiku (Anthropic) con clave del `.env.local` (`ANTHROPIC_API_KEY`), devuelve definición ≤60 palabras según prompt ya especificado en `docs/04 §4.2`. Sin clave configurada → mensaje neutro, nada se rompe. Instalar SDK `@anthropic-ai/sdk`. La clave NUNCA llega al navegador. | M (~25k) |
 | T5 | **Cola de reconexión ("Explicar ahora")** | Detectar internet (`navigator.onLine` + eventos online/offline). En el Banco, aviso discreto "N conceptos pendientes — [Explicar ahora]". El botón procesa uno por uno contra `/api/concept` usando el párrafo guardado como contexto; exitosos pasan a `explicado`; los que fallan siguen pendientes sin castigo. Resumen final en una línea ("3 explicados, 1 para reintentar"). **Decisión del dueño (2026-08-23): botón MANUAL, no automático**, porque cada llamada cuesta dinero y él decide cuándo gastar. | M (~18k) |
-| T2 | **Jerarquía visual del Banco** | Agrupar por libro → capítulo → nodo (encabezados monoespaciados tipo IDE), ordenado por posición en el libro. Los campos ya están guardados; es trabajo de vista. | M (~15k) |
+
+> **T2 (jerarquía visual) quedó completada el 2026-08-23** — ver sección ✅ arriba.
 
 ### Reemplazo de la explicación demo
 
