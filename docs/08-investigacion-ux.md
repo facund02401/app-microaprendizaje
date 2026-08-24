@@ -39,11 +39,14 @@ La guía ya cumple la mayoría de los hallazgos:
 | D7 | **Zen por defecto** | Sidebar colapsable con estado recordado; status bar mínima monoespaciada; nada flota sobre el texto; controles aparecen en hover de zona o por teclado. |
 | D8 | **Accesibilidad base v1** | HTML semántico (nav/main/article/aside), `prefers-reduced-motion` respetado, contraste verificado en los 3 temas. Controles de tamaño de fuente personalizable quedan en backlog (post-MVP, requisito DAISY). |
 | D9 | **Estados de nodo discretos** | ✓ completado · • en curso · 🔒 bloqueado, con `aria-label` descriptivo (no solo color/icono). |
+| D10 | **Glosario del nodo + límites claros** *(v1.1)* | Sección plegable bajo el texto con TODOS los términos del nodo. El límite de 3 términos por sesión (docs/02 §3.2) rige solo para los tooltips flotantes porque son los que interrumpen la lectura; la sección estática no compite por atención durante la lectura. Cada término ofrece ⊕ para guardar en el Banco de conceptos (v1: localStorage; v2 Fase 2: Supabase + IA). |
+| D11 | **Tamaño de lectura ajustable** *(v1.1, saca del backlog el ítem DAISY)* | Control "Aa" en header, presets 16–24px (default 19), variable CSS `--reading-fs` aplicada pre-paint sin flash; interlineado y ancho en ch se adaptan solos. Piso 16px = evita zoom-on-focus de iOS. |
+| D12 | **Glosario táctil híbrido** *(v1.1)* | Popover controlado en vez de Tooltip Radix (no responde al tacto): hover 200ms + cierre con gracia 150ms en escritorio, tap alterna en móvil, Tab+Enter en teclado. Ver APRENDIZAJES (patrón abrir-lento/cerrar-tardío). |
 
 ## 4. Backlog accesorio (post-MVP, documentado para no perder)
 
-- Control de tamaño de fuente e interlineado por usuario (DAISY).
 - Fuente accesible opcional (Atkinson Hyperlegible / OpenDyslexic).
-- Glosario consolidado por libro ("priming glossary", ScholarPhi).
+- Glosario consolidado por libro ("priming glossary", ScholarPhi) — complementaría al glosario por nodo ya implementado.
 - Resaltados cálidos estilo marcador físico (#FBDA83 etc.) si se agregan anotaciones.
 - Scroll paginado opcional (paged scroll).
+- Gestos swipe entre nodos en móvil.

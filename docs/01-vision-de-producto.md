@@ -62,6 +62,17 @@ En lugar de enfrentar obras extensas de manera masiva, la plataforma fragmenta e
 - Modo claro, modo sepia y modo noche.
 - Panel lateral desplegable con el Mapa de Nodos del libro.
 
+> **Ajustes v1.1 (decisión del dueño, ya implementados):**
+> - **Tamaño de lectura ajustable** (control "Aa", presets 16–24px, ver docs/07 §3).
+> - **Glosario del nodo**: sección plegable con todos los términos del nodo; complementa los tooltips flotantes sin reemplazarlos (el límite de 3 por sesión rige solo para los flotantes, que interrumpen la lectura; esta sección es estática y no interrumpe).
+> - **Banco de conceptos (v1 local)**: el lector guarda términos del glosario (⊕) y los consulta desde la pestaña "Banco" del panel lateral. Persistencia local del navegador en el MVP; migrará a Supabase en Fase 2.
+> - **Adaptación móvil**: explorador como cajón flotante <768px, glosario táctil, áreas de toque ≥40px (ver docs/08 D-notas y AGENTS.md).
+
+### 4.5 Funcionalidades aprobadas para Fase 2 (pendientes)
+
+- **Preguntas de recuperación rotativas**: 2–3 preguntas nuevas por visita a cada nodo, generadas por IA al momento de la ingesta. Formato compatible con el diseño antipunitivo: preguntas abiertas para pensar, devolución estilo colega, sin puntajes ni correcto/incorrecto.
+- **Banco de conceptos v2 con IA**: marcar cualquier palabra del texto → la IA explica el término → se puede guardar en el banco (tabla Supabase `concept_bank`).
+
 ### 4.3 Diálogo de Elaboración
 
 - Espacio de escritura minimalista al pie de la micro-dosis.

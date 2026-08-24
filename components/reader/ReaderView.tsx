@@ -7,10 +7,18 @@ import {
   useSyncExternalStore,
 } from "react";
 import { cn } from "@/lib/utils";
+import {
+  getBankServerSnapshot,
+  getBankSnapshot,
+  subscribeBank,
+} from "@/lib/concept-bank";
+import { ConceptBankPanel } from "@/components/reader/ConceptBankPanel";
+import { NodeGlossarySection } from "@/components/reader/NodeGlossarySection";
 import { NodeNavigation } from "@/components/reader/NodeNavigation";
 import { ReaderTextDisplay } from "@/components/reader/ReaderTextDisplay";
 import { ReflectionBox } from "@/components/reader/ReflectionBox";
 import { Breadcrumbs } from "@/components/shell/Breadcrumbs";
+import { FontToggle } from "@/components/shell/FontToggle";
 import { StatusBar } from "@/components/shell/StatusBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { flatNodes } from "@/types";
@@ -50,6 +58,13 @@ export function ReaderView({ book }: Props) {
   const [desktopPref, setDesktopPref] = useState<boolean | null>(null);
   // Última acción manual del usuario (gana sobre los valores por defecto).
   const [override, setOverride] = useState<boolean | null>(null);
+  // Pestaña activa del explorador: mapa de nodos o banco de conceptos.
+  const [explorerTab, setExplorerTab] = useState<"nodos" | "banco">("nodos");
+  const bankCount = useSyncExternalStore(
+    subscribeBank,
+    getBankSnapshot,
+    getBankServerSnapshot
+  ).length;
 
   useEffect(() => {
     // Diferido al siguiente tick: evita setState síncrono en effect.
@@ -129,6 +144,7 @@ export function ReaderView({ book }: Props) {
           ]}
           className="min-w-0 flex-1"
         />
+        <FontToggle />
         <ThemeToggle />
       </header>
 
@@ -156,14 +172,55 @@ export function ReaderView({ book }: Props) {
             sidebarOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full md:hidden"
           )}
         >
-          <NodeNavigation
-            book={book}
-            currentNodeIndex={current}
-            onSelectNode={(i) => {
-              go(i);
-              if (!isDesktop) setOverride(false);
-            }}
-          />
+          {/* Pestañas del explorador: mapa de nodos / banco de conceptos */}
+          <div
+            role="tablist"
+            aria-label="Secciones del explorador"
+            className="mb-2 flex gap-1 border-b border-border px-3 pb-1"
+          >
+            <button
+              role="tab"
+              aria-selected={explorerTab === "nodos"}
+              onClick={() => setExplorerTab("nodos")}
+              className={cn(
+                "min-h-[36px] rounded-sm px-2 font-mono text-[11px] tracking-[0.12em] uppercase",
+                "focus-visible:outline-2 focus-visible:outline-ring/60",
+                explorerTab === "nodos"
+                  ? "bg-sidebar-accent text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Nodos
+            </button>
+            <button
+              role="tab"
+              suppressHydrationWarning
+              aria-selected={explorerTab === "banco"}
+              onClick={() => setExplorerTab("banco")}
+              className={cn(
+                "min-h-[36px] rounded-sm px-2 font-mono text-[11px] tracking-[0.12em] uppercase",
+                "focus-visible:outline-2 focus-visible:outline-ring/60",
+                explorerTab === "banco"
+                  ? "bg-sidebar-accent text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Banco{bankCount > 0 ? ` (${bankCount})` : ""}
+            </button>
+          </div>
+
+          {explorerTab === "nodos" ? (
+            <NodeNavigation
+              book={book}
+              currentNodeIndex={current}
+              onSelectNode={(i) => {
+                go(i);
+                if (!isDesktop) setOverride(false);
+              }}
+            />
+          ) : (
+            <ConceptBankPanel />
+          )}
         </aside>
 
         <main
@@ -172,7 +229,8 @@ export function ReaderView({ book }: Props) {
           className="flex-1 overflow-y-auto"
         >
           <div className="bg-editor min-h-full px-6 py-10 sm:px-10 sm:py-16">
-            <ReaderTextDisplay node={node} />
+            <ReaderTextDisplay node={node} book={book} chapter={chapter} />
+            <NodeGlossarySection node={node} book={book} chapter={chapter} />
             <ReflectionBox node={node} />
 
             {/* Navegación inferior */}

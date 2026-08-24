@@ -89,3 +89,30 @@ TU OBJETIVO:
 │  - Vista de lectura completa (Hito alcanzado).            │
 └───────────────────────────────────────────────────────────┘
 ```
+
+## 4. Prompts pendientes aprobados en v1.1 (especificación, sin implementar)
+
+Decididos con el dueño el 2026-08-23; se implementan en Fase 2 junto a la ingesta.
+Los dos heredan las reglas de tono del prompt de retroalimentación (colega, no
+evaluativo, español).
+
+### 4.1 Preguntas de recuperación rotativas (Gemini, en la ingesta)
+
+- **Cuándo:** al procesar cada nodo, Gemini genera además un banco de **5–8
+  preguntas abiertas** que se guardan en la tabla `nodes` (columna JSONB).
+- **En cada visita** la app muestra 2–3 elegidas al azar → sensación de "nuevo
+  cada vez" sin costo de API por lectura.
+- **Requisitos del prompt:** preguntas que exijan conectar conceptos entre sí y
+  con experiencia clínica ("¿qué relación tiene X con Y?", "¿en qué situación
+  clínica aparecería X?"); prohibido formato multiple-choice; prohibido lenguaje
+  evaluativo; ninguna pregunta con respuesta de sí/no.
+
+### 4.2 Explicar término para el Banco de Conceptos v2 (Claude, on-demand)
+
+- **Entrada:** término o expresión seleccionada por el lector + párrafo donde
+  apareció (contexto) + libro/capítulo como marco teórico.
+- **Salida esperada:** definición breve (≤60 palabras), en el vocabulario del
+  autor del libro cuando exista, con un ejemplo de uso si aporta. Tono colega,
+  sin connotación evaluativa.
+- **Destino:** se muestra in situ y ofrece botón "guardar en mi banco"
+  (tabla `concept_bank` en Supabase, migración desde localStorage).

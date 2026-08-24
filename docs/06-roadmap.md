@@ -15,6 +15,8 @@
 - [ ] Subida de PDF y extracción de texto.
 - [ ] Script de segmentación con Gemini Flash API.
 - [ ] Guardado de nodos en Supabase.
+- [ ] Preguntas de recuperación rotativas por nodo (banco generado en ingesta; ver docs/04 §4.1).
+- [ ] Banco de conceptos v2 con IA: explicar término on-demand + migración localStorage → tabla `concept_bank` (docs/04 §4.2).
 
 ## FASE 3: Diálogo Activo & Pulido Final (1-2 semanas)
 
@@ -31,7 +33,9 @@
 | Documentación y cimientos del repo | ✅ Completa |
 | Investigación UX/UI complementaria | ✅ Completa (`docs/08`) |
 | FASE 1: MVP estático | ✅ Completa (v1 funcional con datos mock) |
-| FASE 2: Backend & IA | ⚪ Pendiente |
+| Adaptación móvil v1.1 | ✅ Completa (cajón flotante, glosario táctil, áreas táctiles) |
+| Features v1.1: tipografía ajustable + glosario del nodo + banco local | ✅ Completas |
+| FASE 2: Backend & IA | ⚪ Pendiente (incluye preguntas IA y banco v2) |
 | FASE 3: Diálogo activo | ⚪ Pendiente |
 
-> Decisiones ya tomadas: código en la raíz del repo · tema por defecto Dark IDE/Tokyo Night · deploy solo local durante el desarrollo inicial.
+> Decisiones ya tomadas: código en la raíz del repo · tema por defecto Dark IDE/Tokyo Night · deploy solo local durante el desarrollo inicial · lectura ajustable 16–24px · preguntas de recuperación recién con IA en Fase 2.

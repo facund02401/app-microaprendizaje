@@ -20,13 +20,18 @@ export const metadata: Metadata = {
     "E-reader de escritorio para estudiar textos teóricos densos mediante micro-dosis conceptuales.",
 };
 
-// Evita el flash de tema incorrecto: se ejecuta antes del primer paint.
+// Evita el flash de tema y de tamaño de letra incorrectos:
+// se ejecuta antes del primer paint.
 const themeInitScript = `
 (function () {
   try {
     var t = localStorage.getItem("nodos-theme") || "dark";
     document.documentElement.dataset.theme = t;
     if (t === "dark") document.documentElement.classList.add("dark");
+    var f = Number(localStorage.getItem("nodos-font-size"));
+    if (f >= 16 && f <= 24) {
+      document.documentElement.style.setProperty("--reading-fs", f + "px");
+    }
   } catch (e) {}
 })();
 `;

@@ -28,6 +28,18 @@ export interface Book {
   chapters: Chapter[];
 }
 
+/** Concepto guardado por el lector en su banco personal (docs/01 §4). */
+export interface SavedConcept {
+  /** Identificador estable: término en minúsculas */
+  id: string;
+  term: string;
+  definition: string;
+  sourceBookTitle: string;
+  sourceChapterTitle: string;
+  sourceNodeIndex: number;
+  savedAt: number;
+}
+
 export function flatNodes(book: Book): { chapter: Chapter; node: ConceptNode }[] {
   return book.chapters.flatMap((chapter) =>
     chapter.nodes.map((node) => ({ chapter, node }))

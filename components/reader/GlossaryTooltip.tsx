@@ -7,10 +7,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { GlossaryTerm } from "@/types";
+import { SaveConceptButton } from "@/components/reader/SaveConceptButton";
+import type { Chapter, GlossaryTerm } from "@/types";
+import type { Book } from "@/types";
 
 interface Props {
   gloss: GlossaryTerm;
+  book: Book;
+  chapter: Chapter;
+  nodeIndex: number;
 }
 
 /**
@@ -21,7 +26,7 @@ interface Props {
  * Móvil: abre/cierra con un toque, cierra tocando afuera o con Esc.
  * Teclado: Tab llega al término, Enter/Espacio alterna, Esc cierra.
  */
-export function GlossaryTooltip({ gloss }: Props) {
+export function GlossaryTooltip({ gloss, book, chapter, nodeIndex }: Props) {
   const [open, setOpen] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,14 +74,21 @@ export function GlossaryTooltip({ gloss }: Props) {
           closeTimer.current = setTimeout(() => setOpen(false), 150);
         }}
         className={cn(
-          "max-w-[320px] justify-start rounded-md border px-3 py-2",
+          "w-auto min-w-[220px] max-w-[320px] justify-start rounded-md border px-3 py-2",
           "font-sans text-[13px] leading-relaxed font-normal",
-          "whitespace-pre-wrap text-left",
-          "bg-[var(--tooltip-bg)] text-foreground border-[var(--tooltip-border)]",
-          "w-auto min-w-[220px]"
+          "bg-[var(--tooltip-bg)] text-foreground border-[var(--tooltip-border)]"
         )}
       >
-        {gloss.definition}
+        <div className="flex items-start justify-between gap-2">
+          <p className="whitespace-pre-wrap text-left">{gloss.definition}</p>
+          <SaveConceptButton
+            gloss={gloss}
+            book={book}
+            chapter={chapter}
+            nodeIndex={nodeIndex}
+            className="-mr-1 -mt-1 sm:size-7"
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );

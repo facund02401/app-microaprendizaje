@@ -71,6 +71,13 @@ Sistema dual de fuentes:
 |---|---|---|
 | Ancho de línea (measure) | 60ch–68ch (≈650–720px) | Evita fatiga del retorno sacádico |
 | Tamaño fuente principal | 18px–20px (1.125rem–1.25rem) | Reduce esfuerzo de acomodación del cristalino a 60–80cm |
+
+> **Ajuste v1.1 (decisión del dueño):** además del default 19px dentro del rango
+> anterior, la app ofrece un control de tamaño (botón "Aa") con presets
+> **16 · 18 · 19 · 20 · 22 · 24 px**, persistente en localStorage (`nodos-font-size`)
+> y aplicado antes del primer paint vía variable CSS `--reading-fs` (sin flash).
+> El piso de 16px evita el zoom automático de iOS al enfocar campos de texto;
+> el techo de 24px preserva la métrica de ancho en `ch`. Accesibilidad WCAG 1.4.4.
 | Interlineado (line-height) | 1.7–1.85 | Previene "fusión de renglones" en lectura concentrada |
 | Espaciado de párrafo | 1.5em | Reemplaza sangría por espacio claro entre unidades discursivas |
 
@@ -135,7 +142,9 @@ module.exports = {
 ### Clase de estilo para el editor de lectura
 
 ```jsx
-<article className="max-w-[65ch] mx-auto font-serif text-[19px] leading-[1.8]">
+{/* v1.1: tamaño ajustable vía variable CSS --reading-fs (control Aa en header).
+    El interlineado unitless y el ancho en ch se adaptan automáticamente. */}
+<article className="max-w-[65ch] mx-auto font-serif text-[length:var(--reading-fs,19px)] leading-[1.8]">
   {/* Texto del nodo */}
 </article>
 ```

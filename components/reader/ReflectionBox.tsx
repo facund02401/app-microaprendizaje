@@ -25,7 +25,7 @@ export function ReflectionBox({ node }: Props) {
       <h3 className="font-sans text-[13px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-4">
         Tu articulación
       </h3>
-      <p className="font-serif text-[19px] leading-[1.7] mb-5">
+      <p className="font-serif text-[length:var(--reading-fs,19px)] leading-[1.7] mb-5">
         {node.reflectionPrompt}
       </p>
       <div className="relative">
@@ -37,7 +37,7 @@ export function ReflectionBox({ node }: Props) {
           }}
           placeholder="Escribí tu reflexión…"
           rows={6}
-          className="w-full resize-y rounded-md border border-input bg-editor px-4 py-3 font-serif text-[17px] leading-relaxed placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring/60"
+          className="w-full resize-y rounded-md border border-input bg-editor px-4 py-3 font-serif text-[length:var(--reading-fs,17px)] leading-relaxed placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring/60"
         />
         <Button
           variant="ghost"
