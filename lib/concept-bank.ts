@@ -20,13 +20,21 @@ function readStorage(): SavedConcept[] {
     if (!raw) return EMPTY;
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return EMPTY;
-    return parsed.filter(
-      (c): c is SavedConcept =>
-        typeof c === "object" &&
-        c !== null &&
-        typeof (c as SavedConcept).id === "string" &&
-        typeof (c as SavedConcept).term === "string"
-    );
+    return parsed
+      .filter(
+        (c): c is Omit<SavedConcept, "status"> &
+          Partial<Pick<SavedConcept, "status">> =>
+          typeof c === "object" &&
+          c !== null &&
+          typeof (c as SavedConcept).id === "string" &&
+          typeof (c as SavedConcept).term === "string"
+      )
+      // Migración automática v1.1→v1.2: lo guardado antes de existir
+      // estados venía del glosario del nodo y ya tiene definición.
+      .map((c) => ({
+        ...c,
+        status: c.status === "pending" ? ("pending" as const) : ("explained" as const),
+      }));
   } catch {
     return EMPTY;
   }
@@ -71,6 +79,25 @@ export function toggleSaved(concept: Omit<SavedConcept, "savedAt">): boolean {
     emit();
     return false;
   }
+  writeStorage(
+    [{ ...concept, savedAt: Date.now() }, ...bank].sort(
+      (a, b) => b.savedAt - a.savedAt
+    )
+  );
+  emit();
+  return true;
+}
+
+/**
+ * Agrega un concepto desde la selección de texto (v1.2).
+ * A diferencia de toggleSaved NO quita el existente: si ya está,
+ * devuelve false para avisar "ya está en tu banco".
+ */
+export function saveFromSelection(
+  concept: Omit<SavedConcept, "savedAt">
+): boolean {
+  const bank = readStorage();
+  if (bank.some((c) => c.id === concept.id)) return false;
   writeStorage(
     [{ ...concept, savedAt: Date.now() }, ...bank].sort(
       (a, b) => b.savedAt - a.savedAt

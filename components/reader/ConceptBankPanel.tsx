@@ -38,19 +38,35 @@ export function ConceptBankPanel() {
           className="rounded-md px-2 py-1.5 hover:bg-sidebar-accent/60"
         >
           <div className="flex items-start justify-between gap-2">
-            <p className="font-serif text-[14px] font-semibold leading-snug">
+            <p className="min-w-0 font-serif text-[14px] font-semibold leading-snug">
               {c.term}
             </p>
-            <button
-              onClick={() => removeFromBank(c.id)}
-              aria-label={`Quitar "${c.term}" del banco`}
-              title="Quitar del banco"
-              className="-mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring/60"
-            >
-              <X aria-hidden="true" className="size-4" />
-            </button>
+            <div className="-mr-1 flex shrink-0 items-center gap-0.5">
+              {c.status === "pending" && (
+                <span
+                  title="Esperando explicación (botón Explicar ahora cuando esté la IA)"
+                  className="rounded border border-border px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-wide text-muted-foreground"
+                >
+                  pendiente
+                </span>
+              )}
+              <button
+                onClick={() => removeFromBank(c.id)}
+                aria-label={`Quitar "${c.term}" del banco`}
+                title="Quitar del banco"
+                className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring/60"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </div>
           </div>
-          <p className="mt-1 font-sans text-[13px] leading-relaxed text-muted-foreground">
+          <p
+            className={
+              c.status === "pending"
+                ? "mt-1 font-sans text-[13px] italic leading-relaxed text-muted-foreground/80"
+                : "mt-1 font-sans text-[13px] leading-relaxed text-muted-foreground"
+            }
+          >
             {c.definition}
           </p>
           <p className="mt-1.5 truncate font-mono text-[10.5px] text-muted-foreground/70">

@@ -28,12 +28,25 @@ export interface Book {
   chapters: Chapter[];
 }
 
+/**
+ * Estado de un concepto del banco (v1.2, decisión del dueño):
+ * - "explained": tiene definición final (glosario del nodo o IA).
+ * - "pending": guardado sin conexión útil; espera explicación de IA
+ *   mediante el botón manual "Explicar ahora" (ver TODO.md).
+ */
+export type ConceptStatus = "explained" | "pending";
+
 /** Concepto guardado por el lector en su banco personal (docs/01 §4). */
 export interface SavedConcept {
   /** Identificador estable: término en minúsculas */
   id: string;
   term: string;
   definition: string;
+  status: ConceptStatus;
+  /** Identificación estable del texto (Fase 2: id de Supabase) */
+  documentId?: string;
+  /** Párrafo donde apareció: contexto para la explicación futura de IA */
+  contextParagraph?: string;
   sourceBookTitle: string;
   sourceChapterTitle: string;
   sourceNodeIndex: number;

@@ -48,6 +48,8 @@ export function SaveConceptButton({
           id,
           term: gloss.term,
           definition: gloss.definition,
+          status: "explained",
+          documentId: book.documentId,
           sourceBookTitle: book.title,
           sourceChapterTitle: chapter.title,
           sourceNodeIndex: nodeIndex,

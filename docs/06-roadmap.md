@@ -35,6 +35,7 @@
 | FASE 1: MVP estático | ✅ Completa (v1 funcional con datos mock) |
 | Adaptación móvil v1.1 | ✅ Completa (cajón flotante, glosario táctil, áreas táctiles) |
 | Features v1.1: tipografía ajustable + glosario del nodo + banco local | ✅ Completas |
+| Banco v1.2: selección → ⊕ → pendientes (prototipo) | ✅ Completa — resto en `TODO.md` |
 | FASE 2: Backend & IA | ⚪ Pendiente (incluye preguntas IA y banco v2) |
 | FASE 3: Diálogo activo | ⚪ Pendiente |
 

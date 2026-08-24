@@ -20,7 +20,10 @@ export function ReaderTextDisplay({
   chapter: Chapter;
 }) {
   return (
-    <article className="max-w-[65ch] mx-auto font-serif text-[length:var(--reading-fs,19px)] leading-[1.8] text-foreground">
+    <article
+      id="node-article"
+      className="max-w-[65ch] mx-auto font-serif text-[length:var(--reading-fs,19px)] leading-[1.8] text-foreground"
+    >
       <h1 className="font-sans text-[13px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-2">
         Nodo {node.orderIndex}
       </h1>

@@ -17,6 +17,7 @@ import { NodeGlossarySection } from "@/components/reader/NodeGlossarySection";
 import { NodeNavigation } from "@/components/reader/NodeNavigation";
 import { ReaderTextDisplay } from "@/components/reader/ReaderTextDisplay";
 import { ReflectionBox } from "@/components/reader/ReflectionBox";
+import { SelectionSave } from "@/components/reader/SelectionSave";
 import { Breadcrumbs } from "@/components/shell/Breadcrumbs";
 import { FontToggle } from "@/components/shell/FontToggle";
 import { StatusBar } from "@/components/shell/StatusBar";
@@ -205,7 +206,7 @@ export function ReaderView({ book }: Props) {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              Banco{bankCount > 0 ? ` (${bankCount})` : ""}
+              Banco de conceptos{bankCount > 0 ? ` (${bankCount})` : ""}
             </button>
           </div>
 
@@ -261,6 +262,9 @@ export function ReaderView({ book }: Props) {
       </div>
 
       <StatusBar book={book} node={node} totalNodes={total} />
+
+      {/* Prototipo v1.2: selección de texto → ⊕ → banco (ver TODO.md) */}
+      <SelectionSave node={node} book={book} chapter={chapter} />
     </div>
   );
 }
