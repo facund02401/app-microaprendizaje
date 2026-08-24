@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -19,33 +20,62 @@ interface Props {
 }
 
 /**
- * Término de glosario flotante in situ (docs/02 §3, docs/08 D2):
- * subrayado punteado, definición breve debajo.
- * Escritorio: abre por hover (~200ms), cierra al salir (con 150ms de gracia
- * para poder leer la definición).
- * Móvil: abre/cierra con un toque, cierra tocando afuera o con Esc.
- * Teclado: Tab llega al término, Enter/Espacio alterna, Esc cierra.
+ * Término de glosario flotante in situ (docs/02 §3, docs/08 D2/D12).
+ * Comportamiento v1.2 corregido (ver APRENDIZAJES):
+ * - Touch/móvil: ignora los eventos sintéticos de mouse (causaban abrir-
+ *   cerrar instantáneo). El toque abre y QUEDA ABIERTO hasta tocar otro
+ *   lugar (interactOutside), Esc o la ×.
+ * - Escritorio con hover real: abre a los 200ms; si abrió por hover,
+ *   salir cierra (gracia 150ms). Un click lo FIJA abierto igual que el toque.
  */
 export function GlossaryTooltip({ gloss, book, chapter, nodeIndex }: Props) {
   const [open, setOpen] = useState(false);
+  /** ¿Se abrió por hover transitorio? Si no, quedó fijado por toque/click. */
+  const openedByHover = useRef(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const canHover = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover)").matches;
 
   const clearTimers = () => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     if (closeTimer.current) clearTimeout(closeTimer.current);
   };
 
+  const scheduleSoftClose = () => {
+    if (!openedByHover.current) return;
+    clearTimers();
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        clearTimers();
+        if (next) {
+          // Apertura por click/toque vía Radix: queda fija.
+          openedByHover.current = false;
+        } else {
+          openedByHover.current = false;
+        }
+        setOpen(next);
+      }}
+    >
       <span
         onMouseEnter={() => {
+          if (!canHover()) return;
           clearTimers();
-          hoverTimer.current = setTimeout(() => setOpen(true), 200);
+          hoverTimer.current = setTimeout(() => {
+            openedByHover.current = true;
+            setOpen(true);
+          }, 200);
         }}
         onMouseLeave={() => {
-          clearTimers();
-          closeTimer.current = setTimeout(() => setOpen(false), 150);
+          if (!canHover()) return;
+          scheduleSoftClose();
         }}
       >
         <PopoverTrigger asChild>
@@ -68,10 +98,15 @@ export function GlossaryTooltip({ gloss, book, chapter, nodeIndex }: Props) {
         role="note"
         side="bottom"
         sideOffset={6}
-        onMouseEnter={clearTimers}
-        onMouseLeave={() => {
+        // Evita saltar el foco al contenido: la lectura sigue donde estaba.
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onMouseEnter={() => {
+          if (!canHover()) return;
           clearTimers();
-          closeTimer.current = setTimeout(() => setOpen(false), 150);
+        }}
+        onMouseLeave={() => {
+          if (!canHover()) return;
+          scheduleSoftClose();
         }}
         className={cn(
           "w-auto min-w-[220px] max-w-[320px] justify-start rounded-md border px-3 py-2",
@@ -81,13 +116,26 @@ export function GlossaryTooltip({ gloss, book, chapter, nodeIndex }: Props) {
       >
         <div className="flex items-start justify-between gap-2">
           <p className="whitespace-pre-wrap text-left">{gloss.definition}</p>
-          <SaveConceptButton
-            gloss={gloss}
-            book={book}
-            chapter={chapter}
-            nodeIndex={nodeIndex}
-            className="-mr-1 -mt-1 sm:size-7"
-          />
+          <div className="-mr-1 -mt-1 flex shrink-0 flex-col items-center gap-0.5">
+            <SaveConceptButton
+              gloss={gloss}
+              book={book}
+              chapter={chapter}
+              nodeIndex={nodeIndex}
+              className="sm:size-7"
+            />
+            <button
+              onClick={() => {
+                clearTimers();
+                setOpen(false);
+              }}
+              aria-label="Cerrar definición"
+              title="Cerrar"
+              className="inline-flex size-7 items-center justify-center rounded-sm text-muted-foreground/70 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring/60"
+            >
+              <X aria-hidden="true" className="size-3.5" />
+            </button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>

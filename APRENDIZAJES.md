@@ -58,3 +58,15 @@
 - **Error:** Detectar el ancho de pantalla con `useState(() => window.innerWidth)` produce HTML de servidor distinto al del cliente (error de hidratación); corregirlo con setState síncrono dentro de `useEffect` viola las reglas del React Compiler.
 - **Corrección:** `useSyncExternalStore` sobre `window.matchMedia("(min-width: 768px)")` con snapshot de servidor `true`; la preferencia de localStorage se lee diferida (`setTimeout 0`) en un estado separado que actúa solo como default en escritorio.
 - **Lección:** Para decisiones dependientes del viewport, usar `useSyncExternalStore` + matchMedia: React resuelve la diferencia servidor/cliente sin warnings ni efectos síncronos.
+
+### 2026-08-23 — Los celulares disparan eventos sintéticos de mouse antes del toque
+- **Contexto:** En móvil, tocar un término del glosario lo abría y cerraba instantáneamente, sin dejar guardar en el banco.
+- **Error:** iOS/Android generan `mouseenter`→`click` al tocar. Nuestro `mouseenter` programaba apertura a 200ms y el `click` de Radix alternaba: según el timing, el toque terminaba cerrando lo que acababa de abrir.
+- **Corrección:** Todos los handlers de hover consultan `window.matchMedia("(hover: hover)").matches` y no hacen nada en táctil. Además, la apertura por toque/click ahora "fija" el popover (flag `openedByHover`): solo cierra con toque fuera, Esc o ×; el cierre por salir con el mouse aplica únicamente si abrió por hover. Se agregó × visible dentro del popover.
+- **Lección:** En componentes híbridos hover/touch, gatear SIEMPRE los handlers de mouse con `(hover: hover)`; nunca depender del timing entre eventos sintéticos y click. Y definir dos modos claros: transitorio (hover) vs fijado (toque).
+
+### 2026-08-23 — La emulación móvil de DevTools no reproduce la selección nativa
+- **Contexto:** Prueba del prototipo selección→⊕ en el simulador de teléfono del navegador.
+- **Error:** Arrastrar en modo dispositivo no selecciona texto, dando la impresión de que la función está rota en móvil.
+- **Corrección:** Es una limitación del simulador: traduce el arrastre a scroll táctil, pero la selección real en celulares viene del long-press nativo, que la emulación no reproduce. Verificar con ventana angosta (<768px, layout móvil + mouse real) o con el teléfono físico vía LAN.
+- **Lección:** El device-mode de Chrome sirve para layout/tamaños, NO para gestos nativos (long-press, selección, teclado virtual); esas interacciones se prueban en hardware real.
