@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Logs locales de desarrollo
 dev-server.log
+
+# Libros reales del modo prueba (texto con derechos de autor, TODO.md §7)
+/data/books/
