@@ -18,6 +18,7 @@ E-reader web de escritorio que fragmenta textos teóricos densos (psicoanálisis
 | 06 | [Roadmap](docs/06-roadmap.md) | Fases de desarrollo y estado actual |
 | 07 | [Guía de diseño UI/UX](docs/07-guia-diseno-ui.md) | Estética "IDE para el pensamiento", tipografía dual, paletas de temas, reglas Tailwind |
 | 08 | [Investigación UX](docs/08-investigacion-ux.md) | Mejores prácticas actuales investigadas y decisiones aplicadas |
+| 09 | [Plan de implementación](docs/09-plan-implementacion.md) | Fase 2 y 3 desglosadas en milestones y pasos chicos, con preguntas abiertas y qué necesita al dueño |
 | — | [Aprendizajes](APRENDIZAJES.md) | Conocimiento acumulado a partir de errores cometidos |
 
 Los PDFs originales están en [`docs/original/`](docs/original/).

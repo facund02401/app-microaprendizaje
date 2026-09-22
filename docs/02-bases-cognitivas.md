@@ -55,10 +55,13 @@ Ocurre cuando múltiples fuentes de información deben integrarse mentalmente (e
 
 - **Regla derivada:** los términos teóricos complejos se resuelven con fichas flotantes *in situ* (tooltips), nunca enviando al usuario a otra página o documento.
 - Limitar estrictamente las definiciones flotantes a un **máximo de 3 términos por sesión**.
+- **Extensión de la definición: 20–30 palabras**, acotada exclusivamente al sentido que el autor le da al término en ese extracto (no una entrada enciclopédica genérica). Detalle de la investigación completa (`docs/original/Bases Cognitivas para App Nodos.pdf` §3.2) que no había quedado en este resumen — aplica al `context_glossary` generado en la ingesta (docs/04 §1), que es distinto del límite de ≤60 palabras del Banco de conceptos v2 (docs/04 §4.2), una explicación on-demand más larga.
 
 ### 3.3 Efecto de Inversión de la Experticia (Expertise Reversal)
 
-El andamiaje debe ser gradual: a medida que el usuario avanza, el apoyo puede reducirse. No es un andamiaje estático permanente.
+El andamiaje debe ser gradual, no estático. La investigación completa (`docs/original/Bases Cognitivas para App Nodos.pdf` §3.3) especifica el mecanismo: cuando el sistema detecta que el usuario comprendió un concepto — evidenciado por sus **respuestas de reflexión validadas por la IA** (Fase 3, diálogo activo) —, las apariciones futuras de ese término dejan de mostrarse resaltadas/con cue visual por defecto, aunque la definición sigue disponible bajo demanda manual (nunca desaparece del todo).
+
+> **Nota de implementación (2026-09-08):** esta señal de dominio depende del feedback de IA sobre la reflexión del usuario (Fase 3, todavía no construida) — **no** del estado `explained`/`pending` del Banco de conceptos. Ese estado solo indica que se le mostró una definición al lector, no que la entendió; usarlo como proxy de maestría sería la señal equivocada (confunde el modo Activo del marco ICAP §2.1 con el Constructivo/Interactivo). No existe un atajo válido para implementar el fading antes de tener el circuito de retroalimentación dialógica funcionando — queda marcado como dependiente de Fase 3 en `TODO.md`, no como mejora de corto plazo sobre el Banco de conceptos.
 
 ## 4. Psicología del Hábito, Dificultades Deseables y Mitigación de la Culpa
 

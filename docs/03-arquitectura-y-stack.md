@@ -7,6 +7,8 @@
 
 Aplicación web moderna, liviana y de bajo costo de mantenimiento. Arquitectura **serverless** centrada en Next.js (App Router), Supabase como Backend-as-a-Service, y APIs de LLMs (Google Gemini / Anthropic Claude) para procesamiento de lenguaje natural.
 
+> **Actualizado 2026-09-08:** mono-usuario por ahora (sin Auth) y modelo de diálogo actualizado a Claude Haiku 4.5 — ver notas en la sección 2 y 3.
+
 ```
 ┌───────────────────────────────────────────────────────────┐
 │                     Cliente (Navegador)                    │
@@ -16,7 +18,6 @@ Aplicación web moderna, liviana y de bajo costo de mantenimiento. Arquitectura 
                ▼                             │
 ┌───────────────────────────────────────────────────────────┐
 │               Next.js Backend (Serverless)                 │
-│   - Control de Autenticación & Sesión                      │
 │   - Orquestación de Ingesta de PDFs                        │
 │   - Prompt Pipeline Manager (LLM Interface)                │
 └──────────────┬────────────────────────────▲───────────────┘
@@ -25,9 +26,10 @@ Aplicación web moderna, liviana y de bajo costo de mantenimiento. Arquitectura 
       ▼                  ▼           ▼                  ▼
 ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
 │   Supabase   │  │ Google Gemini │  │ Anthropic Claude │
-│  - PostgreSQL│  │ Flash         │  │ 3.5 Sonnet/Haiku │
-│  - Auth      │  │ (Ingesta &    │  │ (Retroalimentación│
-│  - Storage   │  │  Chunking)    │  │  fina y diálogo) │
+│  - PostgreSQL│  │ Flash         │  │ Haiku 4.5        │
+│  - Storage   │  │ (Ingesta &    │  │ (Retroalimentación│
+│  (sin Auth,  │  │  Chunking)    │  │  fina y diálogo) │
+│   por ahora) │  │               │  │                  │
 └──────────────┘  └──────────────┘  └──────────────────┘
 ```
 
@@ -37,34 +39,27 @@ Aplicación web moderna, liviana y de bajo costo de mantenimiento. Arquitectura 
 |---|---|---|
 | Framework Web | Next.js 14+ (App Router, TypeScript) | Rendimiento, Server Components para e-reader rápido, despliegue fácil en Vercel |
 | Estilos & UI | Tailwind CSS + `@tailwindcss/typography` | Interfaces e-reader limpias, adaptables, control tipográfico estricto |
-| Base de Datos & Auth | Supabase (PostgreSQL + Supabase Auth) | Capa gratuita generosa, autenticación lista, base relacional sólida |
+| Base de Datos | Supabase (PostgreSQL) | Capa gratuita generosa, base relacional sólida. Auth diferido: app mono-usuario por ahora (decisión 2026-09-08); se agrega si se comparte con otras personas |
 | Almacenamiento | Supabase Storage | Guarda los PDFs originales subidos por el usuario |
 | Procesamiento PDF | `pdf-parse` / `pdfjs-dist` (Node.js) | Extracción rápida de texto plano desde PDFs |
 | Motor IA (Ingesta) | Google Gemini 2.5/1.5 Flash API | Contexto gigante (1M+ tokens), bajo costo, respuesta rápida para libros enteros |
-| Motor IA (Diálogo) | Anthropic Claude 3.5 Sonnet o Gemini Flash | Alta precisión filosófica/clínica para analizar respuestas teóricas |
+| Motor IA (Diálogo) | Anthropic Claude Haiku 4.5 (actualizado 2026-09-08, ver docs/04) | Suficiente precisión para salidas cortas (~150 palabras) a costo mínimo; se sube de tier solo si el uso real pierde matiz clínico/teórico |
 | Hosting Frontend | Vercel (Plan Hobby/Free) | Despliegue continuo integrado con GitHub |
 
 ## 3. Modelo de Datos (Esquema PostgreSQL en Supabase)
 
-```sql
--- TABLA DE PERFILES DE USUARIO
-CREATE TABLE profiles (
-    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    full_name TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL [truncado]
-);
+> **Decisión 2026-09-08 — alcance mono-usuario en Fase 2:** el dueño confirmó que, por ahora, la app es de un solo usuario (él). Se difiere Supabase Auth y la tabla `profiles`; las tablas de contenido no llevan `user_id` todavía. Si en el futuro se comparte con otras personas, se agrega `profiles` + Auth + RLS como migración (agregar columna `user_id` con default a cada tabla), no como rediseño — el esquema original con multiusuario queda documentado en `docs/original/Arquitectura y stack tecnologico.pdf` §3 por si se retoma.
 
+```sql
 -- TABLA DE DOCUMENTOS / LIBROS SUBIDOS
 CREATE TABLE documents (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
     author TEXT,
     file_path TEXT NOT NULL, -- Ruta en Supabase Storage
     total_nodes INT DEFAULT 0,
     status TEXT DEFAULT 'processing', -- 'processing', 'ready', 'error'
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL [truncado]
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
 -- TABLA DE NODOS CONCEPTUALES (MICRO-DOSIS)
@@ -72,24 +67,23 @@ CREATE TABLE nodes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     document_id UUID REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
     order_index INT NOT NULL, -- Secuencia de lectura (1, 2, 3...)
-    title TEXT NOT NULL, -- Ej: "La pulsión y sus destinos: Concepto de Represión" [truncado]
+    title TEXT NOT NULL, -- Ej: "La pulsión y sus destinos: Concepto de Represión"
     excerpt TEXT NOT NULL, -- Párrafos originales extraídos
-    context_glossary JSONB DEFAULT '[]'::jsonb, -- [{ "term": "Trieb", "definition": "..." }] [truncado]
-    reflection_prompt TEXT NOT NULL, -- Pregunta de anclaje
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL [truncado]
+    context_glossary JSONB DEFAULT '[]'::jsonb, -- [{ "term": "Trieb", "definition": "..." }], definiciones de 20-30 palabras (docs/02 §3.2)
+    reflection_prompt TEXT NOT NULL, -- Pregunta de anclaje analógico/procedimental (docs/04 §1.1)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- TABLA DE PROGRESO Y RESPUESTAS DEL USUARIO
+-- TABLA DE PROGRESO Y RESPUESTAS (sin user_id: un solo usuario implícito)
 CREATE TABLE user_progress (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     node_id UUID REFERENCES nodes(id) ON DELETE CASCADE NOT NULL,
     user_response TEXT, -- Texto escrito o transcripto por el usuario
     ai_feedback TEXT, -- Respuesta del bot
     status TEXT DEFAULT 'pending', -- 'pending', 'completed'
     completed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL [truncado],
-    UNIQUE(user_id, node_id)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    UNIQUE(node_id)
 );
 ```
 
@@ -112,5 +106,6 @@ Para uso personal activo o grupo reducido de estudio:
 | Hosting Vercel (Free) | $0/mes |
 | Supabase (Free: 500MB DB + 1GB Storage ≈ +300 libros) | $0/mes |
 | Ingesta de 1 libro de 200 páginas (~100.000 palabras) vía Gemini Flash | ~$0.05–0.10 USD |
-| Diálogo e interacciones diarias (30 días) | ~$0.30 USD |
-| **Total mensual estimado** | **< $2.00 USD/mes** |
+| Explicación de términos + feedback dialógico con Claude Haiku 4.5, uso esporádico real (~5 nodos/día, 3–4 sesiones/día) — recalculado 2026-09-08 | ~$0.70 USD |
+| Dictado por voz: $0 con Web Speech API nativo (primera opción); si se migra a Whisper por calidad, ~$0.90 USD con el mismo patrón de uso | $0–0.90 USD |
+| **Total mensual estimado** | **< $2.00 USD/mes** (se mantiene incluso con dictado pago incluido) |

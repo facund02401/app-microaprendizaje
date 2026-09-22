@@ -15,12 +15,13 @@
 5. `docs/08-investigacion-ux.md` — decisiones de diseño investigadas
 6. `APRENDIZAJES.md` — **leer siempre al empezar; actualizar al cometer/corregir un error**
 7. `TODO.md` — lugar centralizado de lo próximo a hacer y decisiones frescas del dueño
+8. `docs/09-plan-implementacion.md` — desglose paso a paso de Fase 2 y 3 en milestones chicos; **punto de entrada para retomar la implementación**, incluye qué necesita al dueño y preguntas abiertas sin resolver
 
 ## Stack mandatorio (no negociable)
 
 - Next.js 14+ App Router con **TypeScript**
 - Tailwind CSS + Shadcn UI + `@tailwindcss/typography`
-- Supabase (PostgreSQL, Auth, Storage) — desde Fase 2
+- Supabase (PostgreSQL, Storage) — desde Fase 2; Auth diferido mientras la app sea de un solo usuario (decisión 2026-09-08, ver TODO.md)
 - Google Gemini Flash (ingesta) + Anthropic Claude (diálogo) — desde Fase 2
 - El código vive en la **raíz del repo**; la documentación en `docs/`
 
@@ -31,7 +32,7 @@
 3. **Diseño antipunitivo**: prohibido contadores de deuda, rachas perdidas, alertas rojas o acumuladores de pendientes. El mapa se recalcula sin sanción.
 4. **Autoexplicación obligatoria** para completar un nodo; feedback de IA ≤150 palabras, tono colega, NO evaluativo (sin notas/puntajes).
 5. **Glosario flotante in situ** (tooltips), máximo 3 términos por sesión.
-6. **Lectura completa bloqueada como hito**: se desbloquea al completar los nodos.
+6. **Lectura completa siempre accesible**: nunca hay candado. Las secciones ya trabajadas se resaltan en tono tenue como señal de familiaridad; el hito de completar el libro es informativo/celebratorio, no una condición de acceso (decisión 2026-09-08: el hard-lock original iba contra el punto 3 de esta misma lista).
 
 ## Reglas visuales (de Guía de Diseño)
 

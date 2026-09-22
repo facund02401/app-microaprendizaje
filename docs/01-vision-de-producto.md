@@ -76,10 +76,13 @@ En lugar de enfrentar obras extensas de manera masiva, la plataforma fragmenta e
 ### 4.3 Diálogo de Elaboración
 
 - Espacio de escritura minimalista al pie de la micro-dosis.
-- Integración opcional con micrófono para dictado por voz (Whisper / browser API).
+- Integración opcional con micrófono para dictado por voz.
+  > **Decisión 2026-09-08:** confirmado como objetivo, supeditado a costo/calidad. Se implementa primero con el **Web Speech API nativo del navegador** (gratis, sin backend ni proveedor externo); se migra a un proveedor pago (ej. Whisper) solo si la calidad de transcripción de vocabulario técnico (psicoanálisis, términos en alemán) no alcanza. Con el patrón de uso esperado (3–4 sesiones/día, pocas llamadas cada una) el costo de la alternativa paga sería marginal (<$1/mes) — no es un bloqueo real, es una cuestión de calidad primero, no de plata.
 - Retroalimentación inmediata del modelo de IA que valida la interpretación del usuario y la enlaza con el siguiente nodo teórico.
 
-### 4.4 Vista de Lectura Completa (Hito Alcanzado)
+### 4.4 Vista de Lectura Completa
 
-- Una vez completados los nodos de un texto, se activa la vista del documento completo.
-- Visualmente resalta en un tono tenue las secciones que ya fueron trabajadas en las dosis diarias, generando una sensación de familiaridad al navegar el escrito entero.
+> **Ajuste 2026-09-08 (decisión del dueño):** se elimina el bloqueo original. Un candado binario contradecía el principio antipunitivo aplicado a todo lo demás (docs/02 §4.3) — es fricción autoimpuesta sin salida para el propio dueño del texto. El hito de "completar el libro" pasa a ser informativo/celebratorio, no una condición de acceso.
+
+- La vista de lectura completa del documento está disponible en cualquier momento, sin depender de haber completado los nodos.
+- Visualmente resalta en un tono tenue las secciones que ya fueron trabajadas en las dosis diarias, generando una sensación de familiaridad al navegar el escrito entero; las secciones no trabajadas se muestran en estilo normal, sin candado ni bloqueo.
