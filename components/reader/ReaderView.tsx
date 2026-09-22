@@ -232,7 +232,11 @@ export function ReaderView({ book }: Props) {
           <div className="bg-editor min-h-full px-6 py-10 sm:px-10 sm:py-16">
             <ReaderTextDisplay node={node} book={book} chapter={chapter} />
             <NodeGlossarySection node={node} book={book} chapter={chapter} />
-            <ReflectionBox node={node} />
+            <ReflectionBox
+              key={`${book.documentId}-${node.orderIndex}`}
+              node={node}
+              documentId={book.documentId}
+            />
 
             {/* Navegación inferior */}
             <nav

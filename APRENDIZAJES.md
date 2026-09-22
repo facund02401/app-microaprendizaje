@@ -65,8 +65,20 @@
 - **Corrección:** Todos los handlers de hover consultan `window.matchMedia("(hover: hover)").matches` y no hacen nada en táctil. Además, la apertura por toque/click ahora "fija" el popover (flag `openedByHover`): solo cierra con toque fuera, Esc o ×; el cierre por salir con el mouse aplica únicamente si abrió por hover. Se agregó × visible dentro del popover.
 - **Lección:** En componentes híbridos hover/touch, gatear SIEMPRE los handlers de mouse con `(hover: hover)`; nunca depender del timing entre eventos sintéticos y click. Y definir dos modos claros: transitorio (hover) vs fijado (toque).
 
+### 2026-09-08 — El resumen de un doc de investigación puede recortar el dato que importa
+- **Contexto:** al discutir cómo implementar el andamiaje decreciente (Expertise Reversal, docs/02 §3.3), propuse usar el estado `explained`/`pending` del Banco de conceptos como señal de "término dominado".
+- **Error:** `docs/02` es un resumen de `docs/original/Bases Cognitivas para App Nodos.pdf`; al condensarlo se perdió el detalle de que la señal de dominio que especifica la investigación es "respuestas de reflexión **validadas por la IA**" (Fase 3), no el Banco de conceptos (que solo registra que se mostró una definición, modo Activo del marco ICAP — no Constructivo/Interactivo). Mi propuesta habría implementado el principio correcto con la señal equivocada.
+- **Corrección:** se releyó el PDF original completo antes de tocar código o documentación; se corrigió `docs/02` §3.3 para citar la señal correcta y se marcó el fading como dependiente de Fase 3 en `TODO.md`, en vez de como mejora rápida sobre Fase 1/2.
+- **Lección:** cuando una decisión de diseño se apoya en un doc resumido (`docs/0X`), releer el PDF original en `docs/original/` antes de implementar algo no trivial basado en él — el resumen puede omitir precisamente el detalle que cambia la implementación correcta.
+
 ### 2026-08-23 — La emulación móvil de DevTools no reproduce la selección nativa
 - **Contexto:** Prueba del prototipo selección→⊕ en el simulador de teléfono del navegador.
 - **Error:** Arrastrar en modo dispositivo no selecciona texto, dando la impresión de que la función está rota en móvil.
 - **Corrección:** Es una limitación del simulador: traduce el arrastre a scroll táctil, pero la selección real en celulares viene del long-press nativo, que la emulación no reproduce. Verificar con ventana angosta (<768px, layout móvil + mouse real) o con el teléfono físico vía LAN.
 - **Lección:** El device-mode de Chrome sirve para layout/tamaños, NO para gestos nativos (long-press, selección, teclado virtual); esas interacciones se prueban en hardware real.
+
+### 2026-09-21 — Resetear estado al cambiar de "ítem actual" con `key`, no con `setState` en un efecto
+- **Contexto:** El switch consigna/notas de `ReflectionBox.tsx` necesitaba que el texto no se arrastrara de un nodo al siguiente (el componente no se remonta al cambiar `node`, solo recibe una prop nueva).
+- **Error:** Primer intento: un `useEffect([documentId, node.orderIndex])` que llamaba `setMode("prompt")` y `setSavedMode(null)` de forma síncrona al notar el cambio de nodo. `eslint-plugin-react-hooks` (regla `set-state-in-effect`) lo marcó como error: cascada de renders evitable.
+- **Corrección:** En `ReaderView.tsx` se le puso `key={`${book.documentId}-${node.orderIndex}`}` a `<ReflectionBox>`. React desmonta y crea una instancia nueva por nodo, así que el estado inicial (`useState`) ya nace limpio sin tocarlo a mano. El efecto quedó solo para la carga async de localStorage, que si es asíncrona (via `setTimeout`) no dispara la regla.
+- **Lección:** Si un componente necesita "olvidar" su estado cuando cambia el ítem que muestra (nodo, tab, id de una lista), usar `key` en el padre para forzar el remonte, no un `useEffect` que resetea manualmente — más simple, sin efectos secundarios de timing, y no dispara `set-state-in-effect`.
