@@ -186,6 +186,15 @@
     scrollbar-color: var(--border) transparent;
   }
 
+  /* Barra de progreso indeterminada (subida/lectura de archivos) */
+  @keyframes nodos-slide {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [class*="nodos-slide"] { animation: none !important; width: 100% !important; opacity: 0.5; }
+  }
+
   /* Término de glosario: subrayado punteado + cursor de ayuda */
   dfn.glossary-term {
     font-style: normal;

@@ -6,6 +6,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import Link from "next/link";
+import { LibraryBig } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getBankServerSnapshot,
@@ -77,10 +79,29 @@ export function ReaderView({ book }: Props) {
 
   const sidebarOpen = override ?? (isDesktop ? (desktopPref ?? true) : false);
 
+  const positionKey = `nodos-pos-${book.documentId}`;
+
   const go = useCallback(
-    (next: number) => setCurrent(Math.min(total - 1, Math.max(0, next))),
-    [total]
+    (next: number) => {
+      const clamped = Math.min(total - 1, Math.max(0, next));
+      setCurrent(clamped);
+      try {
+        localStorage.setItem(positionKey, String(clamped));
+      } catch {}
+    },
+    [total, positionKey]
   );
+
+  // Retoma el último nodo leído de este libro (diferido: sin desajuste de hidratación).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        const saved = Number(localStorage.getItem(positionKey));
+        if (saved > 0 && saved < total) setCurrent(saved);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(id);
+  }, [positionKey, total]);
 
   const toggleSidebar = useCallback(() => {
     const base = override ?? (isDesktop ? (desktopPref ?? true) : false);
@@ -136,6 +157,14 @@ export function ReaderView({ book }: Props) {
           <span aria-hidden="true" className="font-mono text-sm">≡</span>
           <span className="sr-only">Explorador de nodos</span>
         </button>
+        <Link
+          href="/dashboard"
+          title="Volver a la biblioteca"
+          className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring/60 md:p-1.5"
+        >
+          <LibraryBig className="size-4" aria-hidden="true" />
+          <span className="sr-only">Biblioteca</span>
+        </Link>
         <Breadcrumbs
           items={[
             "Libros / Seminarios",

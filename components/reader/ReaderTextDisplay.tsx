@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { GlossaryTooltip } from "@/components/reader/GlossaryTooltip";
+import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
 import type { Chapter, ConceptNode } from "@/types";
 import type { Book } from "@/types";
 
@@ -41,6 +42,24 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
   );
 
   return node.excerptParagraphs.map((paragraph, pIndex) => {
+    if (paragraph.startsWith(HEADING_PREFIX)) {
+      return (
+        <h3 key={pIndex} className="pt-2 text-[1.1em] leading-snug font-bold">
+          {paragraph.slice(HEADING_PREFIX.length)}
+        </h3>
+      );
+    }
+    if (paragraph.startsWith(NOTE_PREFIX)) {
+      return (
+        <p
+          key={pIndex}
+          className="border-l-2 border-border pl-3 text-[0.8em] leading-relaxed text-muted-foreground"
+        >
+          {paragraph.slice(NOTE_PREFIX.length)}
+        </p>
+      );
+    }
+
     const parts: React.ReactNode[] = [];
     let remaining = paragraph;
     let key = 0;

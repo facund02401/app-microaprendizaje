@@ -31,8 +31,8 @@ export function StatusBar({ book, node, totalNodes }: Props) {
           ⏱ {minutes} min
         </span>
         <span className="hidden truncate sm:inline">{book.title}</span>
-        <span className="ml-auto hidden sm:inline" title="MVP estático: datos locales">
-          mock · sin sincronizar
+        <span className="ml-auto hidden sm:inline">
+          {book.source === "cloud" ? "☁ guardado en tu cuenta" : "texto de prueba · local"}
         </span>
       </div>
     </footer>

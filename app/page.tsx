@@ -21,7 +21,7 @@ export default function Landing() {
           Entrar a la biblioteca →
         </Link>
         <p className="mt-16 font-mono text-[11px] text-muted-foreground/70">
-          MVP estático · datos de prueba · Fase 1
+          Fase 2 · tus textos, guardados en tu cuenta
         </p>
       </div>
     </main>

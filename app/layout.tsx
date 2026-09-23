@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,14 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Nodos — Lector de micro-dosis",
   description:
-    "E-reader de escritorio para estudiar textos teóricos densos mediante micro-dosis conceptuales.",
+    "E-reader para estudiar textos teóricos densos mediante micro-dosis conceptuales.",
+  appleWebApp: { capable: true, title: "Nodos", statusBarStyle: "black" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#181825",
+  width: "device-width",
+  initialScale: 1,
 };
 
 // Evita el flash de tema y de tamaño de letra incorrectos:

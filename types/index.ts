@@ -26,6 +26,8 @@ export interface Book {
   title: string;
   author: string;
   chapters: Chapter[];
+  /** "cloud" = subido y guardado en Supabase; sin valor = texto de prueba local */
+  source?: "cloud";
 }
 
 /**
@@ -63,4 +65,31 @@ export function estimatedMinutes(node: ConceptNode): number {
   const words = node.excerptParagraphs.join(" ").split(/\s+/).length;
   // Lectura analítica densa: ~80 palabras por minuto (docs/02)
   return Math.max(1, Math.round(words / 80));
+}
+
+/** Documento subido por el lector (tabla documents en Supabase). */
+export type DocumentStatus =
+  | "uploaded"
+  | "analyzed"
+  | "extracting"
+  | "segmenting"
+  | "ready"
+  | "error";
+
+export interface DocumentRow {
+  id: string;
+  title: string;
+  author: string | null;
+  file_path: string;
+  file_name: string;
+  file_type: "pdf" | "docx" | "epub" | "txt";
+  status: DocumentStatus;
+  error_message: string | null;
+  page_count: number | null;
+  ocr_pages: number;
+  ocr_done: number;
+  word_count: number | null;
+  paragraph_count: number | null;
+  seg_cursor: number;
+  total_nodes: number;
 }
