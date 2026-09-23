@@ -15,13 +15,14 @@
 5. `docs/08-investigacion-ux.md` — decisiones de diseño investigadas
 6. `APRENDIZAJES.md` — **leer siempre al empezar; actualizar al cometer/corregir un error**
 7. `TODO.md` — lugar centralizado de lo próximo a hacer y decisiones frescas del dueño
+8. `docs/09-despliegue-y-operacion.md` (operación, cuentas, pasos manuales) y `docs/10-decisiones-fase2.md` (decisiones del "directorio")
 
 ## Stack mandatorio (no negociable)
 
 - Next.js 14+ App Router con **TypeScript**
 - Tailwind CSS + Shadcn UI + `@tailwindcss/typography`
 - Supabase (PostgreSQL, Auth, Storage) — desde Fase 2
-- Google Gemini Flash (ingesta) + Anthropic Claude (diálogo) — desde Fase 2
+- Anthropic Claude para ingesta y diálogo — desde Fase 2 (el dueño reemplazó Gemini el 2026-09-23; ver docs/10 D1). Modelo por `CLAUDE_MODEL`, default `claude-opus-5`
 - El código vive en la **raíz del repo**; la documentación en `docs/`
 
 ## Reglas de producto (de Bases Cognitivas — jamás violar)
@@ -57,7 +58,15 @@
 
 ## Fase actual
 
-Ver `docs/06-roadmap.md`. **Fase 1 — MVP estático: completa**, más adaptación móvil v1.1 (cajón flotante, glosario táctil). Próxima: **Fase 2 — backend Supabase + ingesta con IA** (las cuentas se crean desde cero; ver docs/03 y docs/04).
+Ver `docs/06-roadmap.md`. **Fase 1: completa.** **Fase 2 — núcleo completo (2026-09-23):** Supabase (proyecto `nodos`), login solo del dueño, subida de PDF/escaneado/Word/EPUB/TXT, ingesta con Claude por pasos, lector online y despliegue en Vercel. Detalles y pasos manuales en `docs/09`; decisiones en `docs/10`; pendientes en `TODO.md`.
+
+## Reglas técnicas de Fase 2
+
+- **Texto intacto por construcción:** Claude nunca devuelve el texto del autor; solo el número de párrafo donde empieza cada nodo (`lib/ai/segment.ts`). No cambiar esto sin consultar al dueño.
+- **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`).
+- **Todo trabajo con IA es por pasos ≤ 300 s** (`/api/documents/[id]/step`), reanudable y con costo estimado antes de empezar.
+- **Seguridad:** RLS + `allowed_emails`; nunca exponer `ANTHROPIC_API_KEY` al navegador; las migraciones nuevas van en `supabase/migrations/`.
+- **Este entorno de Claude Code no llega a supabase.co ni vercel.com por red:** usar los MCP de Supabase/Vercel y probar el motor con los dobles de prueba descritos en APRENDIZAJES.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

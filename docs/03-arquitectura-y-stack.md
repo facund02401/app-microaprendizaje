@@ -40,7 +40,7 @@ Aplicación web moderna, liviana y de bajo costo de mantenimiento. Arquitectura 
 | Base de Datos & Auth | Supabase (PostgreSQL + Supabase Auth) | Capa gratuita generosa, autenticación lista, base relacional sólida |
 | Almacenamiento | Supabase Storage | Guarda los PDFs originales subidos por el usuario |
 | Procesamiento PDF | `pdf-parse` / `pdfjs-dist` (Node.js) | Extracción rápida de texto plano desde PDFs |
-| Motor IA (Ingesta) | Google Gemini 2.5/1.5 Flash API | Contexto gigante (1M+ tokens), bajo costo, respuesta rápida para libros enteros |
+| Motor IA (Ingesta) | ~~Google Gemini Flash~~ → **Anthropic Claude** (decisión del dueño 2026-09-23, ver docs/10 D1) | Una sola cuenta; lee PDFs escaneados; modelo configurable (`CLAUDE_MODEL`) |
 | Motor IA (Diálogo) | Anthropic Claude 3.5 Sonnet o Gemini Flash | Alta precisión filosófica/clínica para analizar respuestas teóricas |
 | Hosting Frontend | Vercel (Plan Hobby/Free) | Despliegue continuo integrado con GitHub |
 
@@ -111,6 +111,6 @@ Para uso personal activo o grupo reducido de estudio:
 |---|---|
 | Hosting Vercel (Free) | $0/mes |
 | Supabase (Free: 500MB DB + 1GB Storage ≈ +300 libros) | $0/mes |
-| Ingesta de 1 libro de 200 páginas (~100.000 palabras) vía Gemini Flash | ~$0.05–0.10 USD |
+| Ingesta de 1 libro de 200 páginas vía Claude (actualizado, ver docs/09 §4) | ~$2.5–5 USD (opus) · ~40 % con sonnet |
 | Diálogo e interacciones diarias (30 días) | ~$0.30 USD |
 | **Total mensual estimado** | **< $2.00 USD/mes** |

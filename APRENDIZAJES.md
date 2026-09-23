@@ -70,3 +70,27 @@
 - **Error:** Arrastrar en modo dispositivo no selecciona texto, dando la impresión de que la función está rota en móvil.
 - **Corrección:** Es una limitación del simulador: traduce el arrastre a scroll táctil, pero la selección real en celulares viene del long-press nativo, que la emulación no reproduce. Verificar con ventana angosta (<768px, layout móvil + mouse real) o con el teléfono físico vía LAN.
 - **Lección:** El device-mode de Chrome sirve para layout/tamaños, NO para gestos nativos (long-press, selección, teclado virtual); esas interacciones se prueban en hardware real.
+
+### 2026-09-23 — `next dev` agrega un bloque a AGENTS.md
+- **Contexto:** Primera vez corriendo `next dev` con Next 16 en la Fase 2.
+- **Error:** Apareció `AGENTS.md` modificado sin que nadie lo tocara; parecía un cambio accidental.
+- **Corrección:** Next 16 escribe un bloque `nextjs-agent-rules` en AGENTS.md (ver `node_modules/next/dist/server/lib/generate-agent-files.js`). Se commitea para que no vuelva a aparecer.
+- **Lección:** Antes de revertir un cambio inesperado, leer el diff: puede venir de una herramienta y ser útil.
+
+### 2026-09-23 — El entorno de Claude Code en la nube no llega a Supabase ni Vercel
+- **Contexto:** Probar login y procesamiento contra la base real.
+- **Error:** `curl` a `*.supabase.co` y `vercel.com` falla (la política de red del entorno los bloquea), así que no se puede probar la app contra la base real desde el contenedor.
+- **Corrección:** (1) Administrar Supabase/Vercel con sus MCP (SQL, migraciones, deploys, `web_fetch_vercel_url`); (2) probar el motor (`lib/ingest/pipeline.ts`) con un Supabase en memoria y un servidor falso de la API de Anthropic apuntado con `ANTHROPIC_BASE_URL` (streaming SSE), correr con `npx tsx --conditions react-server` (por `server-only`); (3) revisar pantallas con una página de vista previa temporal y Playwright, sin variables de Supabase.
+- **Lección:** Cuando la red bloquea un servicio, probar con dobles que ejerciten el código real sin modificarlo, y verificar producción con las herramientas del proveedor. Si hace falta acceso directo, se habilita en la configuración de red del entorno.
+
+### 2026-09-23 — Detalles de Next 16 al crear rutas nuevas
+- **Contexto:** Rutas `/api/documents/[id]/...` y una página de prueba temporal.
+- **Error:** (1) `RouteContext<...>` no existe hasta que Next genera los tipos; `tsc` fallaba. (2) Tras borrar una página, `tsc` seguía buscándola en `.next/dev/types`. (3) `pkill -f "next dev ..."` mató la propia terminal porque el patrón coincidía con su comando.
+- **Corrección:** (1) Tipar a mano `{ params: Promise<{ id: string }> }`; (2) borrar `.next` antes de verificar tipos; (3) matar procesos por PID o con un patrón que no aparezca en el propio comando.
+- **Lección:** Tras cambios de rutas, limpiar `.next`; no depender de tipos generados en archivos que deben compilar antes del primer build.
+
+### 2026-09-23 — El email gratuito de Supabase solo envía a direcciones autorizadas
+- **Contexto:** Registro de la cuenta del dueño con confirmación por email.
+- **Error potencial:** el SMTP por defecto de Supabase solo manda a miembros de la organización y tiene límite por hora; si el email no coincide, el registro falla.
+- **Corrección:** Como solo los emails de `allowed_emails` pueden registrarse (trigger en `auth.users`), se recomienda apagar "Confirm email" (docs/09 paso 1) y la pantalla de registro explica qué hacer si falla el envío.
+- **Lección:** Con acceso restringido por lista, la confirmación por email no suma seguridad y sí fricción; evaluar cada paso de email contra el uso real.

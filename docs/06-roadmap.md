@@ -11,10 +11,11 @@
 
 ## FASE 2: Integración Backend & API IA (2-3 semanas)
 
-- [ ] Conexión con Supabase DB y Storage.
-- [ ] Subida de PDF y extracción de texto.
-- [ ] Script de segmentación con Gemini Flash API.
-- [ ] Guardado de nodos en Supabase.
+- [x] Conexión con Supabase DB y Storage.
+- [x] Subida de PDF y extracción de texto. *(también PDF escaneado, Word, EPUB y TXT)*
+- [x] Segmentación con IA. *(Claude en vez de Gemini: decisión del dueño, docs/10 D1)*
+- [x] Guardado de nodos en Supabase.
+- [x] Login (solo el dueño), despliegue en Vercel y app instalable en el celular (docs/09).
 - [ ] Preguntas de recuperación rotativas por nodo (banco generado en ingesta; ver docs/04 §4.1).
 - [ ] Banco de conceptos v2 con IA: explicar término on-demand + migración localStorage → tabla `concept_bank` (docs/04 §4.2).
 
@@ -36,7 +37,7 @@
 | Adaptación móvil v1.1 | ✅ Completa (cajón flotante, glosario táctil, áreas táctiles) |
 | Features v1.1: tipografía ajustable + glosario del nodo + banco local | ✅ Completas |
 | Banco v1.2: selección → ⊕ → pendientes (prototipo) | ✅ Completa — resto en `TODO.md` |
-| FASE 2: Backend & IA | ⚪ Pendiente (incluye preguntas IA y banco v2) |
+| FASE 2: Backend & IA | 🟡 Núcleo completo (2026-09-23): login, subida, ingesta con Claude, lector online. Faltan preguntas IA y banco v2 |
 | FASE 3: Diálogo activo | ⚪ Pendiente |
 
-> Decisiones ya tomadas: código en la raíz del repo · tema por defecto Dark IDE/Tokyo Night · deploy solo local durante el desarrollo inicial · lectura ajustable 16–24px · preguntas de recuperación recién con IA en Fase 2.
+> Decisiones ya tomadas: código en la raíz del repo · tema por defecto Dark IDE/Tokyo Night · deploy en Vercel desde Fase 2 (https://nodos-seven.vercel.app) · lectura ajustable 16–24px · preguntas de recuperación recién con IA en Fase 2.

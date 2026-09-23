@@ -4,6 +4,31 @@
 
 ---
 
+## 0. Fase 2 online — lo que falta (actualizado 2026-09-23)
+
+### 👤 Pasos del dueño (una sola vez; guía detallada en `docs/09` §2)
+
+- [ ] **Paso 1:** Supabase → proyecto `nodos` → Authentication → Email → apagar "Confirm email".
+- [ ] **Paso 2:** crear clave en console.anthropic.com, cargar crédito, pegarla en Vercel como `ANTHROPIC_API_KEY` y hacer Redeploy.
+- [ ] **Paso 3:** crear la cuenta en https://nodos-seven.vercel.app ("Primera vez").
+- [ ] **Paso 4:** instalar la app en el celular (Agregar a pantalla de inicio).
+- [ ] **Probar con un texto real corto** (un artículo) y contar cómo se sintieron los nodos: largo, títulos, preguntas. Con eso se ajustan las instrucciones de Claude.
+- [ ] Decidir si se mergea la rama `claude/mobile-app-usage-us3sfw` a `master` (así cada cambio futuro se publica solo).
+
+### ⚪ Próximas tareas técnicas (sin prioridad asignada todavía)
+
+| # | Tarea | Por qué |
+|---|-------|---------|
+| F2-1 | Progreso de lectura sincronizado (tabla en Supabase) | Hoy el último nodo leído se guarda por dispositivo. |
+| F2-2 | Banco de conceptos en Supabase (migrar desde localStorage) | Tenerlo igual en compu y celular (docs/04 §4.2). |
+| F2-3 | T4/T5 con la misma clave de Claude | La clave ya existe tras el paso 2. |
+| F2-4 | Preguntas de recuperación rotativas | Pospuesto por costo (docs/10 D11). |
+| F2-5 | Procesamiento en segundo plano (Supabase Edge Functions) | Hoy hay que dejar la pantalla abierta (docs/10 D5). |
+| F2-6 | Modo sin conexión para libros ya procesados | docs/10 D10. |
+| F2-7 | Reprocesar un documento / editar cortes de nodos a mano | Si un corte no convence. |
+
+---
+
 ## 1. Banco de conceptos v1.2 — estado actual
 
 ### ✅ Ya funcionando (prototipo, commit actual)
