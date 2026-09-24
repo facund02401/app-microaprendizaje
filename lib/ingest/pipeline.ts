@@ -10,8 +10,10 @@ import { epubToParagraphs } from "./epub";
 import { WINDOW_WORDS } from "./estimate";
 import { analyzePdf, assemblePages, type PagedParagraph, type PageContent } from "./pdf";
 import {
+  SHORT_TEXT_WORDS,
   detectTextSections,
   pageBlockSections,
+  singleTextSection,
   positionOf,
   type SectionDraft,
 } from "./sections";
@@ -161,7 +163,12 @@ async function analyze(sb: SupabaseClient, doc: DocumentRow): Promise<DocumentRo
       .from("document_texts")
       .upsert({ document_id: doc.id, paragraphs: items.map((p) => p.text) });
     if (error) throw new Error(error.message);
-    sections = detectTextSections(items, title ?? doc.title);
+    const words = items.reduce((n, p) => n + countWords(p.text), 0);
+    // Artículos y textos breves: una sola pieza, sin índice que elegir (docs/10 D13).
+    sections =
+      words <= SHORT_TEXT_WORDS
+        ? [singleTextSection(items, title ?? doc.title)]
+        : detectTextSections(items, title ?? doc.title);
   }
 
   if (!sections.length) {
@@ -239,6 +246,7 @@ async function prepareScannedBlock(
   const paragraphs = splitLongPaged(assemblePages(pages, section.page_start!)).map((p) => p.text);
   await updateSection(sb, doc.id, section.idx, {
     paragraphs,
+    reconstructed: paragraphs.reduce((n, p) => n + (p.match(/⟦[^⟧]+⟧/g)?.length ?? 0), 0),
     ocr_done: section.ocr_pages,
     words: paragraphs.reduce((n, p) => n + countWords(p), 0),
   });

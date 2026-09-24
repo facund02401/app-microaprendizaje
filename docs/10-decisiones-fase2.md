@@ -68,3 +68,23 @@
 - **Diseño:** índice con casillas, tiempo de lectura y costo de cada parte; "Preparar y empezar a leer" prepara solo la primera elegida. En el lector, 3 nodos antes del final de lo preparado se prepara sola la siguiente parte de la lista; al final se ofrece "¿Seguimos con…?" con su costo, o volver al índice. "Preparar todo ahora" queda como opción.
 - **Decisión:** el procesamiento por partes es el modo normal.
 - **Límite conocido:** en PDFs escaneados los bloques de 10 páginas pueden cortar un capítulo; el corte cae entre nodos, nunca dentro de un párrafo.
+
+### D13 — Artículos y textos breves: una sola pieza *(pedido del dueño, 2026-09-24)*
+- **Usuario:** "Un artículo no tiene capítulos: que no me ofrezca un índice que no existe."
+- **Decisión:** hasta **15.000 palabras** (o 40 páginas escaneadas) el documento es una sola parte: se muestra una tarjeta con tiempo, costo y "Preparar y empezar a leer", sin casillas. Sus subtítulos (Resumen, Método, Discusión…) igual ordenan los nodos por dentro, y la bibliografía se omite.
+- **Por qué por tamaño y no por "tipo":** es una regla predecible y gratis; un capítulo suelto de un libro también se comporta mejor así.
+
+### D14 — Apuntes guardados en la cuenta y exportación en PDF *(pedido del dueño)*
+- **Hallazgo:** el botón "Guardar reflexión" del prototipo decía "guardada" pero no guardaba nada. Se corrigió antes de exportar.
+- **Usuario:** "Al terminar un capítulo, un artículo o el libro, quiero llevarme mis respuestas, mis notas y los conceptos que guardé, con su referencia al texto."
+- **Decisión:**
+  - En la caja de cada nodo, conmutador **Respuesta / Nota** (la nota es libre). Se guarda sola mientras se escribe (tabla `node_responses`), con copia en el dispositivo si no hay conexión.
+  - El banco de conceptos se sincroniza con la cuenta (tabla `concept_bank`): sigue funcionando sin conexión y aparece igual en compu y celular.
+  - **PDF** (formato elegido por el dueño): título, autor y fecha; por capítulo y nodo, pregunta + respuesta y notas; al final, cada concepto con definición, ubicación (capítulo · nodo) y la oración del autor donde aparece. Se exporta un capítulo (al terminarlo) o el documento entero (al final y en la pantalla del documento). Tipografía Liberation Serif (licencia OFL).
+- **Pendiente:** número de página en las referencias del banco.
+
+### D15 — Escaneados que se leen mal *(pedido del dueño)*
+- **Usuario:** "Que la IA corrija por contexto lo que no se lee bien, pero que lo señale."
+- **Técnica:** la transcripción marca lo reconstruido entre ⟦ ⟧ solo cuando el contexto lo hace muy probable; si no, escribe [ilegible]. Nunca inventa.
+- **Diseño:** en el lector, lo reconstruido lleva subrayado discontinuo discreto; al tocarlo: "Reconstruido por contexto: en el original escaneado esta parte se lee mal". En el índice, cada parte lista cuántas palabras se reconstruyeron.
+- **Coherencia con "texto intacto":** nada se corrige en silencio; el lector siempre sabe qué es del original y qué es inferido.

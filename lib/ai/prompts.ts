@@ -16,6 +16,7 @@ REGLAS DE SEGMENTACIÓN
 - El fragmento puede terminar a mitad de un argumento: segmentá igual hasta el final (el último nodo se revisa en la siguiente tanda).
 - Los párrafos que empiezan con "# " son títulos del libro. Un título abre un nodo nuevo; nunca cierres un nodo con un título.
 - Los párrafos que empiezan con "[nota]" son notas al pie: pertenecen al nodo donde aparecen. Nunca empieces un nodo con una nota.
+- Las palabras entre ⟦ ⟧ son reconstrucciones de partes que se leían mal en el escaneo: tratálas como texto normal y no las uses como términos de glosario.
 - Marcá "omitir" en los rangos que no son para leer como argumento: índice, créditos editoriales, listas de abreviaturas, bibliografía, índices analíticos. Prólogos, introducciones y prefacios SÍ son lectura.
 
 PARA CADA NODO
@@ -55,5 +56,10 @@ INSTRUCCIONES
 - Las notas al pie van en "notes", cada una empezando con su número o asterisco.
 - Omití encabezados repetidos de página (título del libro o capítulo arriba), números de página y marcas de digitalización.
 - Si una página está en blanco o solo tiene imágenes, devolvé listas vacías para esa página.
+
+PARTES QUE SE LEEN MAL (manchas, cortes, tinta corrida)
+- Si una palabra o fragmento se lee mal pero el contexto permite deducirlo con mucha seguridad, escribí tu reconstrucción entre ⟦ y ⟧. Ejemplo: "el retorno de lo ⟦reprimido⟧".
+- Marcá solo lo que reconstruiste: todo lo que se lee bien va sin marcas, tal cual.
+- Si no se puede deducir con seguridad, escribí [ilegible] en su lugar. Nunca inventes para completar.
 
 Devolvé exactamente una entrada en "pages" por cada página recibida, en el mismo orden. Respondé solo con el JSON pedido.`;

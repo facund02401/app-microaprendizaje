@@ -94,3 +94,14 @@
 - **Error potencial:** el SMTP por defecto de Supabase solo manda a miembros de la organización y tiene límite por hora; si el email no coincide, el registro falla.
 - **Corrección:** Como solo los emails de `allowed_emails` pueden registrarse (trigger en `auth.users`), se recomienda apagar "Confirm email" (docs/09 paso 1) y la pantalla de registro explica qué hacer si falla el envío.
 - **Lección:** Con acceso restringido por lista, la confirmación por email no suma seguridad y sí fricción; evaluar cada paso de email contra el uso real.
+
+### 2026-09-24 — Un botón decía "guardado" sin guardar nada
+- **Contexto:** Diseño de la exportación de apuntes.
+- **Error:** En el prototipo, "Guardar reflexión" solo cambiaba el texto a "Reflexión guardada ✓"; al cambiar de nodo, lo escrito se perdía. Nadie lo notó porque el mensaje decía lo contrario.
+- **Corrección:** Autoguardado real en `node_responses`, con copia local mientras no hay confirmación y mensaje honesto ("Sin conexión: quedó en este dispositivo…").
+- **Lección:** Un mensaje de éxito solo se muestra después de confirmar el éxito. En prototipos, si algo no persiste, decirlo en pantalla ("se pierde al recargar").
+
+### 2026-09-24 — Detener el servidor de prueba por su PID
+- **Contexto:** Revisión visual con `next dev` en segundo plano.
+- **Corrección aplicada:** `… & echo $! > dev.pid` al lanzar y `kill $(cat dev.pid)` al terminar (más `ps | grep "[n]ext-server"` para el proceso hijo). No volvió a cortarse la terminal.
+- **Lección:** Nunca matar procesos con patrones que coincidan con el propio comando.

@@ -27,12 +27,17 @@ import { StatusBar } from "@/components/shell/StatusBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { ContinuePanel } from "@/components/reader/ContinuePanel";
 import { flatNodes, nodeKey } from "@/types";
-import type { Book, SectionRow } from "@/types";
+import { EMPTY_RESPONSE } from "@/types";
+import type { Book, NodeResponse, SectionRow } from "@/types";
+import { syncBank } from "@/lib/concept-bank";
+import { ExportLink } from "@/components/reader/ExportLink";
 
 interface Props {
   book: Book;
   /** Libros subidos: índice para preparar el siguiente capítulo a medida que se lee. */
   processing?: { sections: SectionRow[]; model: string; aiReady: boolean };
+  /** Respuestas y notas ya guardadas en la cuenta, por id de nodo. */
+  responses?: Record<string, NodeResponse>;
 }
 
 /** Punto de corte escritorio/móvil: <768px el explorador es cajón flotante. */
@@ -49,7 +54,16 @@ function subscribeMq(onChange: () => void) {
  * En móvil (<768px) el explorador nace cerrado y se abre como cajón sobre
  * el texto, con fondo oscurecido que lo cierra al tocarlo.
  */
-export function ReaderView({ book, processing }: Props) {
+export function ReaderView({ book, processing, responses: initialResponses }: Props) {
+  const cloud = book.source === "cloud";
+  const [responses, setResponses] = useState<Record<string, NodeResponse>>(initialResponses ?? {});
+
+  // Trae al dispositivo el banco de conceptos guardado en la cuenta.
+  useEffect(() => {
+    if (!cloud) return;
+    const t = setTimeout(() => void syncBank(), 0);
+    return () => clearTimeout(t);
+  }, [cloud]);
   const nodes = useMemo(() => flatNodes(book), [book]);
   const total = nodes.length;
   // Se guarda la identidad del nodo (no su número): si se preparan capítulos
@@ -151,6 +165,8 @@ export function ReaderView({ book, processing }: Props) {
   }, [current]);
 
   const { chapter, node } = nodes[current];
+  // Último nodo preparado de este capítulo: se ofrece exportar sus apuntes.
+  const chapterEnds = current === total - 1 || nodes[current + 1].chapter.id !== chapter.id;
 
   return (
     <div className="flex h-dvh flex-col">
@@ -270,7 +286,14 @@ export function ReaderView({ book, processing }: Props) {
           <div className="bg-editor min-h-full px-6 py-10 sm:px-10 sm:py-16">
             <ReaderTextDisplay node={node} book={book} chapter={chapter} />
             <NodeGlossarySection node={node} book={book} chapter={chapter} />
-            <ReflectionBox node={node} />
+            <ReflectionBox
+              key={nodeKey(node)}
+              node={node}
+              documentId={book.documentId}
+              cloud={cloud}
+              initial={responses[nodeKey(node)] ?? EMPTY_RESPONSE}
+              onSaved={(v) => setResponses((prev) => ({ ...prev, [nodeKey(node)]: v }))}
+            />
 
             {/* Navegación inferior */}
             <nav
@@ -295,6 +318,15 @@ export function ReaderView({ book, processing }: Props) {
                 siguiente →
               </button>
             </nav>
+
+            {cloud && chapterEnds && (
+              <div className="mx-auto mt-10 flex max-w-[65ch] flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-5 py-4 font-sans">
+                <p className="text-[14px] leading-relaxed text-muted-foreground">
+                  Terminaste <span className="font-serif text-foreground">«{chapter.title}»</span>.
+                </p>
+                <ExportLink documentId={book.documentId} chapterId={chapter.id} label="Exportar apuntes del capítulo" />
+              </div>
+            )}
 
             {processing && (
               <ContinuePanel

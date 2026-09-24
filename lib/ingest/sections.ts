@@ -135,11 +135,37 @@ export function detectTextSections(items: PagedParagraph[], docTitle: string): S
   });
 }
 
-/** PDFs con muchas páginas escaneadas: el índice es por bloques de 10 páginas. */
+/** Textos breves (artículos): hasta estas palabras o páginas escaneadas, una sola pieza. */
+export const SHORT_TEXT_WORDS = 15000;
+export const SHORT_SCANNED_PAGES = 40;
+
+/** Artículo o texto breve: una sola sección, sin índice que elegir. */
+export function singleTextSection(items: PagedParagraph[], title: string): SectionDraft {
+  const paras = items.map((p) => p.text);
+  const pages = items.map((p) => p.page).filter((p): p is number => p != null);
+  return {
+    idx: 0,
+    title,
+    kind: "text",
+    para_start: 0,
+    para_end: paras.length,
+    page_start: pages.length ? Math.min(...pages) : null,
+    page_end: pages.length ? Math.max(...pages) : null,
+    words: paras.filter((p) => !p.startsWith(HEADING_PREFIX)).reduce((n, p) => n + countWords(p), 0),
+    ocr_pages: 0,
+    preview: previewOf(paras),
+  };
+}
+
+/**
+ * PDFs con muchas páginas escaneadas: el índice es por bloques de 10 páginas
+ * (o un solo bloque si el documento es breve).
+ */
 export function pageBlockSections(pages: PdfAnalysis["pages"]): SectionDraft[] {
   const out: SectionDraft[] = [];
-  for (let start = 0; start < pages.length; start += PAGE_BLOCK) {
-    const block = pages.slice(start, start + PAGE_BLOCK);
+  const size = pages.length <= SHORT_SCANNED_PAGES ? Math.max(1, pages.length) : PAGE_BLOCK;
+  for (let start = 0; start < pages.length; start += size) {
+    const block = pages.slice(start, start + size);
     const ocr = block.filter((p) => p.needsOcr).length;
     const textParas = block.flatMap((p) => p.body);
     const heading = textParas.find((p) => p.startsWith(HEADING_PREFIX));

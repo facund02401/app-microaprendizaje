@@ -91,6 +91,9 @@ export function SectionIndex({ sections, selected, onToggle, onSelectAll, model,
                       `${formatMinutes(est.readingMinutes)} de lectura`,
                       s.status === "done" ? null : `~${formatCostRange(est.usd)}`,
                       s.ocr_pages > 0 && s.status !== "done" ? `${s.ocr_pages} escaneadas` : null,
+                      s.status === "done" && s.reconstructed > 0
+                        ? `${s.reconstructed} ${s.reconstructed === 1 ? "palabra reconstruida" : "palabras reconstruidas"}`
+                        : null,
                     ]
                       .filter(Boolean)
                       .join(" · ")}

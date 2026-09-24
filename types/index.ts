@@ -117,7 +117,17 @@ export interface SectionRow {
   status: SectionStatus;
   cursor: number;
   ocr_done: number;
+  /** Escaneados: palabras reconstruidas por contexto (marcadas ⟦…⟧ en el texto). */
+  reconstructed: number;
 }
 
 export const SECTION_COLUMNS =
-  "idx, title, kind, para_start, para_end, page_start, page_end, words, ocr_pages, preview, status, cursor, ocr_done";
+  "idx, title, kind, para_start, para_end, page_start, page_end, words, ocr_pages, preview, status, cursor, ocr_done, reconstructed";
+
+/** Lo que el lector escribió en un nodo: respuesta a la pregunta y nota libre. */
+export interface NodeResponse {
+  answer: string;
+  note: string;
+}
+
+export const EMPTY_RESPONSE: NodeResponse = { answer: "", note: "" };

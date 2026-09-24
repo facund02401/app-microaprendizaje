@@ -20,13 +20,15 @@
 | # | Tarea | Por qué |
 |---|-------|---------|
 | F2-1 | Progreso de lectura sincronizado (tabla en Supabase) | Hoy el último nodo leído se guarda por dispositivo. |
-| F2-2 | Banco de conceptos en Supabase (migrar desde localStorage) | Tenerlo igual en compu y celular (docs/04 §4.2). |
+| ✅ F2-2 | Banco de conceptos sincronizado con la cuenta (2026-09-24) | Tabla `concept_bank` + `syncBank()`; sigue funcionando sin conexión. |
 | F2-3 | T4/T5 con la misma clave de Claude | La clave ya existe tras el paso 2. |
 | F2-4 | Preguntas de recuperación rotativas | Pospuesto por costo (docs/10 D11). |
 | F2-5 | Procesamiento en segundo plano (Supabase Edge Functions) | Hoy hay que dejar la pantalla abierta (docs/10 D5). |
 | F2-6 | Modo sin conexión para libros ya procesados | docs/10 D10. |
 | F2-7 | Reprocesar un documento / editar cortes de nodos a mano | Si un corte no convence. |
 | ✅ F2-8 | Procesar por partes elegidas del índice, a medida que se lee (2026-09-24) | Ahorro: se paga solo lo que se lee (docs/10 D12). |
+| ✅ F2-9 | Artículos como una sola pieza; reconstrucciones marcadas en escaneados; respuestas/notas guardadas y exportación PDF (2026-09-24) | docs/10 D13–D15. |
+| F2-10 | Número de página en las referencias del banco exportado | Hoy la ubicación es capítulo · nodo. |
 
 ---
 

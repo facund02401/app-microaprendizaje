@@ -63,7 +63,9 @@ Ver `docs/06-roadmap.md`. **Fase 1: completa.** **Fase 2 — núcleo completo (2
 ## Reglas técnicas de Fase 2
 
 - **Texto intacto por construcción:** Claude nunca devuelve el texto del autor; solo el número de párrafo donde empieza cada nodo (`lib/ai/segment.ts`). No cambiar esto sin consultar al dueño.
-- **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`).
+- **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`). En escaneados, `⟦…⟧` = reconstruido por contexto y `[ilegible]` = no deducible (docs/10 D15); el lector los muestra marcados, nunca en silencio.
+- **Textos breves (≤ 15.000 palabras / 40 págs. escaneadas):** una sola parte, sin índice (docs/10 D13).
+- **Apuntes:** `node_responses` (respuesta + nota por nodo) y `concept_bank` (espejo del banco local, se sincroniza con `syncBank()`); exportación PDF en `/api/documents/[id]/export[?chapter=]` (`lib/export/`). Nunca mostrar "guardado" sin haber guardado.
 - **Todo trabajo con IA es por pasos ≤ 300 s** (`/api/documents/[id]/step`), reanudable y con costo estimado antes de empezar.
 - **Procesamiento por partes (docs/10 D12):** el lector elige partes del índice (`document_sections`); se prepara una a la vez y la siguiente al acercarse al final. Ordenar nodos/capítulos siempre por `start_position`, nunca por `order_index`.
 - **Seguridad:** RLS + `allowed_emails`; nunca exponer `ANTHROPIC_API_KEY` al navegador; las migraciones nuevas van en `supabase/migrations/`.

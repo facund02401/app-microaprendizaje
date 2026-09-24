@@ -64,7 +64,10 @@ Queda un ícono "Nodos" que abre la app a pantalla completa. La primera vez te p
 4. **Leé:** cuando te faltan 3 nodos para terminar lo preparado, la app prepara sola la siguiente parte de tu lista. Al final de lo elegido te ofrece "¿Seguimos con…?" (con su costo) o volver al índice para sumar otras partes. **Si dejás el libro, no se gasta en lo que no leíste.**
    - Mientras prepara, la pantalla queda encendida. Si la cerrás, se pausa y retoma sin volver a cobrar lo hecho.
    - **Preparar todo ahora** procesa toda tu lista de una vez (útil si vas a leer sin esperas).
-5. El lector recuerda en qué nodo quedaste de cada libro (en ese dispositivo). El ícono de libros arriba a la izquierda vuelve a la biblioteca; "índice y partes" en la biblioteca vuelve a la lista de partes.
+5. **Artículos y textos breves** (hasta ~15.000 palabras): se leen como una sola pieza, sin índice; aparece directamente "Preparar y empezar a leer".
+6. **Tus apuntes:** en cada nodo, la caja de abajo tiene un conmutador **Respuesta / Nota**. Se guarda solo mientras escribís (si no hay conexión, queda en el dispositivo y se sube después). Al terminar un capítulo aparece **Exportar apuntes del capítulo**; al final de lo preparado y en la pantalla del documento, **Exportar todos mis apuntes (PDF)**: preguntas y respuestas, notas y banco de conceptos con la frase del texto donde aparece cada uno.
+7. **Escaneados:** si una parte se leía mal, la IA la reconstruye por contexto solo si es muy probable y la marca con subrayado discontinuo (tocala para ver la aclaración); si no se puede deducir, aparece **[ilegible]**. El índice muestra cuántas palabras se reconstruyeron en cada parte.
+8. El lector recuerda en qué nodo quedaste de cada libro (en ese dispositivo). El ícono de libros arriba a la izquierda vuelve a la biblioteca; "índice y partes" en la biblioteca vuelve a la lista de partes.
 
 ### Qué hace Claude con tu texto
 

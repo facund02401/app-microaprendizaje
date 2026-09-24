@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { isActive, sectionPercent, useProcessing } from "@/components/processing/useProcessing";
 import { estimateSection, formatCostRange, formatMinutes } from "@/lib/ingest/estimate";
 import type { SectionRow } from "@/types";
+import { ExportLink } from "./ExportLink";
 
 interface Props {
   documentId: string;
@@ -106,6 +107,10 @@ export function ContinuePanel({ documentId, processing, position, nearEnd, atEnd
       )}
 
       {p.notice && <p className="rounded-md bg-muted px-3 py-2 text-[13px] leading-relaxed">{p.notice}</p>}
+
+      <div className="border-t border-border pt-3">
+        <ExportLink documentId={documentId} label="Exportar todos mis apuntes (PDF)" />
+      </div>
     </aside>
   );
 }

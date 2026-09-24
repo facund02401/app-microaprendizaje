@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SectionIndex } from "@/components/processing/SectionIndex";
+import { ExportLink } from "@/components/reader/ExportLink";
 import { isActive, sectionPercent, useProcessing } from "@/components/processing/useProcessing";
 import { estimateSection, formatCostRange, formatMinutes, sumEstimates } from "@/lib/ingest/estimate";
 import { createClient } from "@/lib/supabase/client";
@@ -21,11 +22,15 @@ interface Props {
 const selectedFrom = (sections: SectionRow[]) =>
   new Set(sections.filter((s) => s.status !== "available").map((s) => s.idx));
 
+/** Un texto breve (una sola parte) viene elegido de entrada: no hay índice que mostrar. */
+const initialSelection = (sections: SectionRow[]) =>
+  sections.length === 1 ? new Set([sections[0].idx]) : selectedFrom(sections);
+
 export function DocumentProcessor({ initial, initialSections, model, aiReady }: Props) {
   const router = useRouter();
   const p = useProcessing(initial.id, { document: initial, sections: initialSections });
   const doc = p.doc ?? initial;
-  const [selected, setSelected] = useState(() => selectedFrom(initialSections));
+  const [selected, setSelected] = useState(() => initialSelection(initialSections));
   const [analyzing, setAnalyzing] = useState(initial.status === "uploaded");
   const [justReady, setJustReady] = useState<SectionRow | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -35,7 +40,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
     if (initial.status !== "uploaded") return;
     const t = setTimeout(async () => {
       const r = await p.analyze();
-      if (r.sections) setSelected(selectedFrom(r.sections));
+      if (r.sections) setSelected(initialSelection(r.sections));
       setAnalyzing(false);
     }, 0);
     return () => clearTimeout(t);
@@ -109,7 +114,9 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
     router.refresh();
   }
 
-  const hasIndex = sections.length > 0 && !analyzing;
+  const single = sections.length === 1;
+  const hasIndex = sections.length > 1 && !analyzing;
+  const singleEstimate = single ? estimateSection(model, sections[0]) : null;
 
   return (
     <div>
@@ -120,11 +127,18 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
       <div className="mb-6 space-y-3">
         <label className="block">
           <span className="sr-only">Título</span>
-          <input
+          <textarea
             defaultValue={doc.title}
-            onBlur={(e) => saveField("title", e.target.value)}
+            rows={1}
+            onBlur={(e) => saveField("title", e.target.value.replace(/\s*\n\s*/g, " "))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.blur();
+              }
+            }}
             aria-label="Título del documento"
-            className="w-full rounded-md border border-transparent bg-transparent px-1 py-1 font-serif text-[26px] leading-snug font-bold hover:border-border focus-visible:border-input focus-visible:outline-2 focus-visible:outline-ring/60"
+            className="field-sizing-content w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 font-serif text-[26px] leading-snug font-bold hover:border-border focus-visible:border-input focus-visible:outline-2 focus-visible:outline-ring/60"
           />
         </label>
         <input
@@ -156,7 +170,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
               onClick={async () => {
                 setAnalyzing(true);
                 const r = await p.analyze();
-                if (r.sections) setSelected(selectedFrom(r.sections));
+                if (r.sections) setSelected(initialSelection(r.sections));
                 setAnalyzing(false);
               }}
             >
@@ -174,13 +188,14 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
               : `✓ ${done.length} de ${sections.length} partes listas · ${doc.total_nodes} nodos.`}
             {sections.some(isActive) && " Lo demás de tu lista se prepara mientras leés."}
           </p>
-          <div>
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href={`/reader/${doc.id}`}
               className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-sans text-[15px] font-medium text-primary-foreground hover:bg-primary/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60"
             >
               {justReady ? "Empezar a leer →" : "Seguir leyendo →"}
             </Link>
+            <ExportLink documentId={doc.id} label="Exportar mis apuntes (PDF)" />
           </div>
         </Panel>
       )}
@@ -206,6 +221,32 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
           </p>
           <div>
             <SecondaryButton onClick={p.stop}>Pausar al terminar este paso</SecondaryButton>
+          </div>
+        </Panel>
+      )}
+
+      {single && !analyzing && !p.running && sections[0].status !== "done" && singleEstimate && (
+        <Panel>
+          <p className="font-sans text-[15px] leading-relaxed">
+            Texto breve: se lee como <strong className="font-medium">una sola pieza</strong>, sin índice que elegir.
+            Sus subtítulos van a ordenar los nodos por dentro.
+          </p>
+          <p className="font-mono text-[12px] leading-relaxed text-muted-foreground">
+            {[
+              sections[0].page_start != null ? `págs. ${sections[0].page_start}–${sections[0].page_end}` : null,
+              `${formatMinutes(singleEstimate.readingMinutes)} de lectura`,
+              `~${formatCostRange(singleEstimate.usd)}`,
+              sections[0].ocr_pages > 0 ? `${sections[0].ocr_pages} págs. escaneadas` : null,
+              `modelo ${model}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          {!aiReady && <AiMissing />}
+          <div>
+            <PrimaryButton onClick={() => void startReading()} disabled={!aiReady}>
+              Preparar y empezar a leer
+            </PrimaryButton>
           </div>
         </Panel>
       )}
