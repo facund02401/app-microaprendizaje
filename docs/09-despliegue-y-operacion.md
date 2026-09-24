@@ -59,12 +59,12 @@ Queda un ícono "Nodos" que abre la app a pantalla completa. La primera vez te p
 ## 3. Cómo se usa
 
 1. **Biblioteca → Subir documento.** Formatos: PDF con texto, PDF escaneado, Word (.docx), EPUB y .txt. Hasta 50 MB.
-2. **Lectura gratuita:** Nodos lee el archivo (sin IA, sin costo) y muestra páginas, palabras, si hay páginas escaneadas y el **costo estimado**. Ahí podés corregir título y autor.
-3. **Procesar con IA:** recién ahí se usa Claude. El proceso va por pasos (unos 1–2 minutos cada uno) y muestra el avance.
-   - **Mantené la pantalla abierta.** En el celular, Nodos evita que la pantalla se apague. Si la cerrás, se pausa; al volver a abrir el documento sigue solo desde donde quedó, sin volver a cobrar lo hecho.
-   - Si Claude pide una pausa (límite por minuto) o falla la conexión, reintenta solo.
-   - Podés **leer lo que ya está** mientras se procesa el resto.
-4. **Leer:** el lector recuerda en qué nodo quedaste de cada libro (en ese dispositivo). El ícono de libros arriba a la izquierda vuelve a la biblioteca.
+2. **Índice gratis:** Nodos lee el archivo (sin IA, sin costo) y arma el índice con los títulos del libro. Cada parte muestra páginas, tiempo de lectura y **costo estimado**. Si el texto no tiene títulos, se divide en partes de unas 5.000 palabras; si es escaneado, en bloques de 10 páginas.
+3. **Elegí qué leer:** marcá las partes que te interesan (por ejemplo: introducción, cap. 7 y cap. 12) y tocá **Preparar y empezar a leer**. Se prepara **solo la primera** (1–3 minutos); las demás quedan "en tu lista".
+4. **Leé:** cuando te faltan 3 nodos para terminar lo preparado, la app prepara sola la siguiente parte de tu lista. Al final de lo elegido te ofrece "¿Seguimos con…?" (con su costo) o volver al índice para sumar otras partes. **Si dejás el libro, no se gasta en lo que no leíste.**
+   - Mientras prepara, la pantalla queda encendida. Si la cerrás, se pausa y retoma sin volver a cobrar lo hecho.
+   - **Preparar todo ahora** procesa toda tu lista de una vez (útil si vas a leer sin esperas).
+5. El lector recuerda en qué nodo quedaste de cada libro (en ese dispositivo). El ícono de libros arriba a la izquierda vuelve a la biblioteca; "índice y partes" en la biblioteca vuelve a la lista de partes.
 
 ### Qué hace Claude con tu texto
 
@@ -77,11 +77,12 @@ Queda un ícono "Nodos" que abre la app a pantalla completa. La primera vez te p
 | Concepto | Costo |
 |---|---|
 | Vercel, Supabase | US$ 0 (planes gratis) |
-| Libro con texto de ~85.000 palabras (~210 págs.) con `claude-opus-5` | ~US$ 2,5 – 5 |
+| Un capítulo típico (~8.000 palabras) con `claude-opus-5` | ~US$ 0,25 – 0,55 |
+| Libro con texto de ~85.000 palabras (~210 págs.) completo, con `claude-opus-5` | ~US$ 2,5 – 5 |
 | Mismo libro escaneado (transcripción + nodos) | ~US$ 8 – 17 |
 | Con `claude-sonnet-5` (más económico) | ~40 % de lo anterior |
 
-La app muestra la estimación de cada documento **antes** de gastar. Para usar el modelo más económico: en Vercel agregá la variable `CLAUDE_MODEL` = `claude-sonnet-5` y hacé **Redeploy** (paso 2.6). Se puede volver atrás borrando la variable.
+Como se procesa por partes, solo se paga lo que elegís leer. La app muestra la estimación de cada parte **antes** de gastar. Para usar el modelo más económico: en Vercel agregá la variable `CLAUDE_MODEL` = `claude-sonnet-5` y hacé **Redeploy** (paso 2.6). Se puede volver atrás borrando la variable.
 
 ## 5. Si algo falla
 
@@ -100,5 +101,5 @@ La app muestra la estimación de cada documento **antes** de gastar. Para usar e
 - **IDs:** Supabase `evgetytknfysnayrgjzi` (sa-east-1) · Vercel `prj_Iyp6VTyw5teBO8boQZX0Bpni1z1O` (team `consultorio11`, región `gru1` vía `vercel.json`).
 - **Esquema:** `supabase/migrations/` (tablas `documents`, `document_pages`, `document_texts`, `chapters`, `nodes`; bucket privado `documents`). Aplicar migraciones nuevas con el MCP de Supabase (`apply_migration`) y guardarlas en esa carpeta.
 - **Acceso:** tabla `public.allowed_emails` (no se lee desde la API) + trigger que bloquea registros de otros emails + RLS que exige dueño habilitado (`private.is_allowed_user()`). Sumar un email: `insert into public.allowed_emails (email) values ('...');`. El email del dueño no está en el repo a propósito.
-- **Proceso:** `POST /api/documents/[id]/analyze` (sin IA) y `POST /api/documents/[id]/step` (una unidad de trabajo ≤ 300 s). El navegador llama a `step` en bucle; un candado (`lock_until`) evita pasos simultáneos. Código en `lib/ingest/` y `lib/ai/`.
+- **Proceso por partes (docs/10 D12):** tabla `document_sections` (índice con estado `available`/`queued`/`processing`/`done`). `POST /api/documents/[id]/analyze` (sin IA, arma el índice), `POST .../queue` `{add, remove}` (lista del lector) y `POST .../step` `{section?}` (una unidad de trabajo ≤ 300 s sobre esa parte o la primera de la lista). Nodos y capítulos se ordenan por `start_position` = parte × 100000 + párrafo. El navegador llama a `step` en bucle; un candado (`lock_until`) evita pasos simultáneos. Código en `lib/ingest/` y `lib/ai/`.
 - **Despliegues:** el proyecto de Vercel está conectado al repo. `master` = producción; otras ramas = vistas previas protegidas. La primera producción se creó desde la rama `claude/mobile-app-usage-us3sfw`; al mergear a `master` cada push publica solo.

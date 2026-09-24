@@ -13,6 +13,12 @@ export interface PageContent {
   notes: string[];
 }
 
+/** Párrafo con la página donde empieza (para mostrar rangos de páginas en el índice). */
+export interface PagedParagraph {
+  text: string;
+  page: number | null;
+}
+
 export interface PdfAnalysis {
   pages: (PageContent & { needsOcr: boolean })[];
   title?: string;
@@ -203,14 +209,15 @@ export async function analyzePdf(buffer: Uint8Array): Promise<PdfAnalysis> {
  * se reconstruye, y las notas de cada página se ubican después del párrafo
  * donde termina esa página.
  */
-export function assemblePages(pages: PageContent[]): string[] {
-  const out: string[] = [];
-  let pendingNotes: string[] = [];
+export function assemblePages(pages: PageContent[], firstPage = 1): PagedParagraph[] {
+  const out: PagedParagraph[] = [];
+  let pendingNotes: PagedParagraph[] = [];
   let lastBodyIndex = -1;
 
-  for (const page of pages) {
+  pages.forEach((page, p) => {
+    const pageNumber = firstPage + p;
     page.body.forEach((para, i) => {
-      const prev = lastBodyIndex >= 0 ? out[lastBodyIndex] : null;
+      const prev = lastBodyIndex >= 0 ? out[lastBodyIndex].text : null;
       const continues =
         i === 0 &&
         prev !== null &&
@@ -219,18 +226,18 @@ export function assemblePages(pages: PageContent[]): string[] {
         !endsSentence(prev);
 
       if (continues) {
-        out[lastBodyIndex] = joinLines(prev, para);
+        out[lastBodyIndex] = { ...out[lastBodyIndex], text: joinLines(prev, para) };
         return;
       }
       if (pendingNotes.length) {
         out.push(...pendingNotes);
         pendingNotes = [];
       }
-      out.push(para);
+      out.push({ text: para, page: pageNumber });
       lastBodyIndex = out.length - 1;
     });
-    pendingNotes.push(...page.notes);
-  }
+    pendingNotes.push(...page.notes.map((text) => ({ text, page: pageNumber })));
+  });
   out.push(...pendingNotes);
   return out;
 }

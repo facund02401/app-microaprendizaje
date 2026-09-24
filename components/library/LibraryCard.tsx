@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { statusLabel } from "@/lib/documents";
+import { statusLabel, type SectionCounts } from "@/lib/documents";
 import { cn } from "@/lib/utils";
 import type { DocumentRow } from "@/types";
 
@@ -10,10 +10,10 @@ const TYPE_LABEL: Record<DocumentRow["file_type"], string> = {
   txt: "Texto",
 };
 
-export function LibraryCard({ doc }: { doc: DocumentRow }) {
+export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: SectionCounts }) {
   const readable = doc.total_nodes > 0;
   const processing = doc.status === "extracting" || doc.status === "segmenting";
-  const href = doc.status === "ready" ? `/reader/${doc.id}` : `/dashboard/documents/${doc.id}`;
+  const href = readable ? `/reader/${doc.id}` : `/dashboard/documents/${doc.id}`;
 
   return (
     <div className="rounded-lg border border-border bg-card hover:border-ring/60 focus-within:border-ring/60">
@@ -26,11 +26,11 @@ export function LibraryCard({ doc }: { doc: DocumentRow }) {
           <span
             className={cn(
               "font-mono text-[11.5px] whitespace-nowrap",
-              doc.status === "ready" ? "text-muted-foreground" : "text-primary"
+              readable ? "text-muted-foreground" : "text-primary"
             )}
           >
-            {doc.status === "ready" ? "✓ " : processing ? "• " : ""}
-            {statusLabel(doc)}
+            {counts.total > 0 && counts.done === counts.total ? "✓ " : processing ? "• " : ""}
+            {statusLabel(doc, counts)}
           </span>
         </div>
         <p className="font-sans text-[13px] text-muted-foreground">
@@ -39,18 +39,13 @@ export function LibraryCard({ doc }: { doc: DocumentRow }) {
             .join(" · ")}
         </p>
       </Link>
-      {(doc.status === "ready" || (processing && readable)) && (
+      {readable && (
         <div className="flex gap-4 border-t border-border px-5 py-2 font-mono text-[11.5px]">
-          {processing && readable && (
-            <Link href={`/reader/${doc.id}`} className="py-1 text-muted-foreground hover:text-foreground">
-              leer lo que ya está →
-            </Link>
-          )}
           <Link
             href={`/dashboard/documents/${doc.id}`}
-            className="py-1 text-muted-foreground hover:text-foreground"
+            className="py-2 text-muted-foreground hover:text-foreground"
           >
-            detalles
+            índice y partes →
           </Link>
         </div>
       )}

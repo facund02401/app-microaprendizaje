@@ -7,6 +7,10 @@ export interface GlossaryTerm {
 
 export interface ConceptNode {
   orderIndex: number;
+  /** Identificador estable (id en Supabase); en el texto de prueba se usa orderIndex */
+  key?: string;
+  /** Posición en el libro (sección * 100000 + párrafo), para libros procesados por partes */
+  position?: number;
   title: string;
   /** Párrafos del texto fuente, intactos (chunking conceptual 300–600 palabras) */
   excerptParagraphs: string[];
@@ -55,6 +59,8 @@ export interface SavedConcept {
   savedAt: number;
 }
 
+export const nodeKey = (node: ConceptNode) => node.key ?? String(node.orderIndex);
+
 export function flatNodes(book: Book): { chapter: Chapter; node: ConceptNode }[] {
   return book.chapters.flatMap((chapter) =>
     chapter.nodes.map((node) => ({ chapter, node }))
@@ -93,3 +99,25 @@ export interface DocumentRow {
   seg_cursor: number;
   total_nodes: number;
 }
+
+export type SectionStatus = "available" | "queued" | "processing" | "done";
+
+/** Sección del índice de un documento (tabla document_sections, sin los párrafos). */
+export interface SectionRow {
+  idx: number;
+  title: string;
+  kind: "text" | "pages";
+  para_start: number | null;
+  para_end: number | null;
+  page_start: number | null;
+  page_end: number | null;
+  words: number;
+  ocr_pages: number;
+  preview: string | null;
+  status: SectionStatus;
+  cursor: number;
+  ocr_done: number;
+}
+
+export const SECTION_COLUMNS =
+  "idx, title, kind, para_start, para_end, page_start, page_end, words, ocr_pages, preview, status, cursor, ocr_done";

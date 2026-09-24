@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { LibraryCard } from "@/components/library/LibraryCard";
+import { countSections } from "@/lib/documents";
 import { mockBook } from "@/lib/mock-data";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getUser } from "@/lib/supabase/server";
@@ -11,7 +12,7 @@ import type { DocumentRow } from "@/types";
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
-  let documents: DocumentRow[] = [];
+  let documents: (DocumentRow & { document_sections?: { status: string }[] })[] = [];
   let signedIn = false;
 
   if (supabaseConfigured) {
@@ -20,9 +21,9 @@ export default async function Dashboard() {
     if (user) {
       const { data } = await supabase
         .from("documents")
-        .select("*")
+        .select("*, document_sections(status)")
         .order("created_at", { ascending: false });
-      documents = (data ?? []) as DocumentRow[];
+      documents = (data ?? []) as typeof documents;
     }
   }
 
@@ -50,7 +51,7 @@ export default async function Dashboard() {
           <ul className="space-y-3">
             {documents.map((doc) => (
               <li key={doc.id}>
-                <LibraryCard doc={doc} />
+                <LibraryCard doc={doc} counts={countSections(doc.document_sections)} />
               </li>
             ))}
 

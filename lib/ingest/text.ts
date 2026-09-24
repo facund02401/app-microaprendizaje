@@ -82,6 +82,13 @@ export function splitLongParagraphs(paragraphs: string[]): string[] {
   return out;
 }
 
+/** Igual que splitLongParagraphs, conservando la página de cada párrafo. */
+export function splitLongPaged<T extends { text: string }>(items: T[]): T[] {
+  return items.flatMap((item) =>
+    splitLongParagraphs([item.text]).map((text) => ({ ...item, text }))
+  );
+}
+
 export function totalWords(paragraphs: string[]): number {
   return paragraphs.reduce((n, p) => n + countWords(p), 0);
 }

@@ -16,28 +16,33 @@ export function formatBytes(n: number): string {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
-/** Porcentaje total del proceso (transcripción + armado de nodos). */
-export function progressPercent(doc: DocumentRow): number {
-  if (doc.status === "ready") return 100;
-  const ocrWeight = doc.ocr_pages > 0 ? 0.4 : 0;
-  const ocr = doc.ocr_pages > 0 ? doc.ocr_done / doc.ocr_pages : 1;
-  const seg = doc.paragraph_count ? doc.seg_cursor / doc.paragraph_count : 0;
-  const value = doc.status === "extracting" ? ocr * ocrWeight : ocrWeight + seg * (1 - ocrWeight);
-  return Math.min(99, Math.round(value * 100));
+export interface SectionCounts {
+  done: number;
+  total: number;
+  active: number;
 }
 
-export function statusLabel(doc: DocumentRow): string {
+export function countSections(rows: { status: string }[] | null | undefined): SectionCounts {
+  const list = rows ?? [];
+  return {
+    done: list.filter((r) => r.status === "done").length,
+    total: list.length,
+    active: list.filter((r) => r.status === "queued" || r.status === "processing").length,
+  };
+}
+
+export function statusLabel(doc: DocumentRow, counts: SectionCounts): string {
+  const parts = counts.total > 1 ? ` · ${counts.done}/${counts.total} partes` : "";
   switch (doc.status) {
     case "uploaded":
       return "Leyendo el archivo";
     case "analyzed":
-      return "Listo para procesar";
+      return "Elegí qué leer";
     case "extracting":
-      return `Transcribiendo · ${progressPercent(doc)}%`;
     case "segmenting":
-      return `Armando nodos · ${progressPercent(doc)}%`;
+      return doc.total_nodes ? `${doc.total_nodes} nodos${parts} · en tu lista: ${counts.active}` : "Preparando";
     case "ready":
-      return `${doc.total_nodes} nodos`;
+      return `${doc.total_nodes} nodos${parts}`;
     case "error":
       return "Necesita revisión";
   }

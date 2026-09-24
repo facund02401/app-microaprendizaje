@@ -65,6 +65,7 @@ Ver `docs/06-roadmap.md`. **Fase 1: completa.** **Fase 2 — núcleo completo (2
 - **Texto intacto por construcción:** Claude nunca devuelve el texto del autor; solo el número de párrafo donde empieza cada nodo (`lib/ai/segment.ts`). No cambiar esto sin consultar al dueño.
 - **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`).
 - **Todo trabajo con IA es por pasos ≤ 300 s** (`/api/documents/[id]/step`), reanudable y con costo estimado antes de empezar.
+- **Procesamiento por partes (docs/10 D12):** el lector elige partes del índice (`document_sections`); se prepara una a la vez y la siguiente al acercarse al final. Ordenar nodos/capítulos siempre por `start_position`, nunca por `order_index`.
 - **Seguridad:** RLS + `allowed_emails`; nunca exponer `ANTHROPIC_API_KEY` al navegador; las migraciones nuevas van en `supabase/migrations/`.
 - **Este entorno de Claude Code no llega a supabase.co ni vercel.com por red:** usar los MCP de Supabase/Vercel y probar el motor con los dobles de prueba descritos en APRENDIZAJES.
 

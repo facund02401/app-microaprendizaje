@@ -26,6 +26,7 @@
 | F2-5 | Procesamiento en segundo plano (Supabase Edge Functions) | Hoy hay que dejar la pantalla abierta (docs/10 D5). |
 | F2-6 | Modo sin conexión para libros ya procesados | docs/10 D10. |
 | F2-7 | Reprocesar un documento / editar cortes de nodos a mano | Si un corte no convence. |
+| ✅ F2-8 | Procesar por partes elegidas del índice, a medida que se lee (2026-09-24) | Ahorro: se paga solo lo que se lee (docs/10 D12). |
 
 ---
 

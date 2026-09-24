@@ -60,3 +60,11 @@
 ### D11 — Preguntas de recuperación rotativas (docs/04 §4.1)
 - **Negocio:** generarlas en la ingesta sube ~50 % el costo de salida.
 - **Decisión:** posponer hasta que el dueño pruebe la lectura con libros reales; se agregan re-procesando solo esa parte.
+
+### D12 — Procesar de a partes, a medida que se lee *(propuesta del dueño, 2026-09-24)*
+- **Usuario:** "Muchas veces subo el libro entero pero no lo leo todo: capaz leo la introducción, el capítulo 7 y el 12, o lo dejo por la mitad. No quiero pagar por lo que no leo. Esperar un par de minutos entre capítulos no me molesta."
+- **Negocio:** es la forma de gastar solo en lo que se lee; con un libro abandonado a la mitad se ahorra la mitad o más.
+- **Técnica:** al subir se arma gratis un **índice** (con los títulos de Word/EPUB/PDF; sin títulos, partes de ~5.000 palabras; PDFs escaneados, bloques de 10 páginas). Cada parte tiene estado: disponible → en tu lista → preparándose → lista. Los nodos guardan su **posición en el libro**, así se ordenan bien aunque se prepare el capítulo 12 antes que el 3.
+- **Diseño:** índice con casillas, tiempo de lectura y costo de cada parte; "Preparar y empezar a leer" prepara solo la primera elegida. En el lector, 3 nodos antes del final de lo preparado se prepara sola la siguiente parte de la lista; al final se ofrece "¿Seguimos con…?" con su costo, o volver al índice. "Preparar todo ahora" queda como opción.
+- **Decisión:** el procesamiento por partes es el modo normal.
+- **Límite conocido:** en PDFs escaneados los bloques de 10 páginas pueden cortar un capítulo; el corte cae entre nodos, nunca dentro de un párrafo.

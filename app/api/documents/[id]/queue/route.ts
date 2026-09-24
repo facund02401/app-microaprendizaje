@@ -5,5 +5,5 @@ export const maxDuration = 300;
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  return handleDocumentAction(req, id, "step");
+  return handleDocumentAction(req, id, "queue");
 }

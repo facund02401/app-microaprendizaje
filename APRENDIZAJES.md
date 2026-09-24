@@ -85,8 +85,8 @@
 
 ### 2026-09-23 — Detalles de Next 16 al crear rutas nuevas
 - **Contexto:** Rutas `/api/documents/[id]/...` y una página de prueba temporal.
-- **Error:** (1) `RouteContext<...>` no existe hasta que Next genera los tipos; `tsc` fallaba. (2) Tras borrar una página, `tsc` seguía buscándola en `.next/dev/types`. (3) `pkill -f "next dev ..."` mató la propia terminal porque el patrón coincidía con su comando.
-- **Corrección:** (1) Tipar a mano `{ params: Promise<{ id: string }> }`; (2) borrar `.next` antes de verificar tipos; (3) matar procesos por PID o con un patrón que no aparezca en el propio comando.
+- **Error:** (1) `RouteContext<...>` no existe hasta que Next genera los tipos; `tsc` fallaba. (2) Tras borrar una página, `tsc` seguía buscándola en `.next/dev/types`. (3) `pkill -f "next dev ..."` (y luego `pgrep -f` + `kill` en un bucle) mató la propia terminal porque el patrón coincidía con su comando. Pasó dos veces.
+- **Corrección:** (1) Tipar a mano `{ params: Promise<{ id: string }> }`; (2) borrar `.next` antes de verificar tipos; (3) guardar el PID al lanzar el servidor (`… & echo $! > pid`) y matar ese PID; o usar el truco `[n]ext` en el patrón para que no coincida consigo mismo.
 - **Lección:** Tras cambios de rutas, limpiar `.next`; no depender de tipos generados en archivos que deben compilar antes del primer build.
 
 ### 2026-09-23 — El email gratuito de Supabase solo envía a direcciones autorizadas

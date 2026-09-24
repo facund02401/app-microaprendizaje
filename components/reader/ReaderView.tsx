@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -24,11 +25,14 @@ import { Breadcrumbs } from "@/components/shell/Breadcrumbs";
 import { FontToggle } from "@/components/shell/FontToggle";
 import { StatusBar } from "@/components/shell/StatusBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
-import { flatNodes } from "@/types";
-import type { Book } from "@/types";
+import { ContinuePanel } from "@/components/reader/ContinuePanel";
+import { flatNodes, nodeKey } from "@/types";
+import type { Book, SectionRow } from "@/types";
 
 interface Props {
   book: Book;
+  /** Libros subidos: índice para preparar el siguiente capítulo a medida que se lee. */
+  processing?: { sections: SectionRow[]; model: string; aiReady: boolean };
 }
 
 /** Punto de corte escritorio/móvil: <768px el explorador es cajón flotante. */
@@ -45,10 +49,14 @@ function subscribeMq(onChange: () => void) {
  * En móvil (<768px) el explorador nace cerrado y se abre como cajón sobre
  * el texto, con fondo oscurecido que lo cierra al tocarlo.
  */
-export function ReaderView({ book }: Props) {
-  const nodes = flatNodes(book);
+export function ReaderView({ book, processing }: Props) {
+  const nodes = useMemo(() => flatNodes(book), [book]);
   const total = nodes.length;
-  const [current, setCurrent] = useState(0);
+  // Se guarda la identidad del nodo (no su número): si se preparan capítulos
+  // anteriores, la lectura sigue en el mismo lugar.
+  const [currentKey, setCurrentKey] = useState<string | null>(null);
+  const found = currentKey ? nodes.findIndex(({ node }) => nodeKey(node) === currentKey) : -1;
+  const current = found >= 0 ? found : 0;
 
   // Detecta escritorio sin desincronización de hidratación.
   const isDesktop = useSyncExternalStore(
@@ -83,25 +91,26 @@ export function ReaderView({ book }: Props) {
 
   const go = useCallback(
     (next: number) => {
-      const clamped = Math.min(total - 1, Math.max(0, next));
-      setCurrent(clamped);
+      const clamped = Math.min(nodes.length - 1, Math.max(0, next));
+      const key = nodeKey(nodes[clamped].node);
+      setCurrentKey(key);
       try {
-        localStorage.setItem(positionKey, String(clamped));
+        localStorage.setItem(positionKey, key);
       } catch {}
     },
-    [total, positionKey]
+    [nodes, positionKey]
   );
 
   // Retoma el último nodo leído de este libro (diferido: sin desajuste de hidratación).
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        const saved = Number(localStorage.getItem(positionKey));
-        if (saved > 0 && saved < total) setCurrent(saved);
+        const saved = localStorage.getItem(positionKey);
+        if (saved) setCurrentKey(saved);
       } catch {}
     }, 0);
     return () => clearTimeout(id);
-  }, [positionKey, total]);
+  }, [positionKey]);
 
   const toggleSidebar = useCallback(() => {
     const base = override ?? (isDesktop ? (desktopPref ?? true) : false);
@@ -286,6 +295,16 @@ export function ReaderView({ book }: Props) {
                 siguiente →
               </button>
             </nav>
+
+            {processing && (
+              <ContinuePanel
+                documentId={book.documentId}
+                processing={processing}
+                position={node.position}
+                nearEnd={current >= total - 3}
+                atEnd={current === total - 1}
+              />
+            )}
           </div>
         </main>
       </div>
