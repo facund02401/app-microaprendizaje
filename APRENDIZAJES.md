@@ -117,3 +117,8 @@
 - **Contexto:** Revisión visual con `next dev` en segundo plano.
 - **Corrección aplicada:** `… & echo $! > dev.pid` al lanzar y `kill $(cat dev.pid)` al terminar (más `ps | grep "[n]ext-server"` para el proceso hijo). No volvió a cortarse la terminal.
 - **Lección:** Nunca matar procesos con patrones que coincidan con el propio comando.
+
+### 2026-09-29 — El menú nativo del móvil tapa el botón ⊕ del banco de conceptos
+- **Contexto:** Al seleccionar texto en el celular, el navegador muestra su propio menú (copiar / seleccionar todo) pegado a la selección, justo donde flotaba el ⊕.
+- **Corrección aplicada:** con `(pointer: coarse)` el ⊕ y la tarjeta se anclan abajo de la pantalla (fuera del alcance del menú nativo); en escritorio sigue junto a la selección. En táctil el botón abre en `pointerdown` porque tocarlo puede colapsar la selección antes del `click`. Archivo: `components/reader/SelectionSave.tsx`.
+- **Lección:** En móvil nunca poner controles pegados a una selección de texto; anclarlos a un borde de la pantalla.

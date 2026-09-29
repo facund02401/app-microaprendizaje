@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Plus, X } from "lucide-react";
 import { saveFromSelection } from "@/lib/concept-bank";
 import type { Book, Chapter, ConceptNode } from "@/types";
@@ -21,6 +21,13 @@ interface SelectionInfo {
 }
 
 const MAX_CHARS = 300;
+const COARSE = "(pointer: coarse)";
+
+function subscribeCoarse(cb: () => void) {
+  const mq = window.matchMedia(COARSE);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
 
 /** Explicación provisoria hasta conectar la IA en Fase 2 (ver TODO.md). */
 function demoExplanation(term: string): string {
@@ -51,6 +58,13 @@ function matchGlossary(
 export function SelectionSave({ node, book, chapter }: Props) {
   const [sel, setSel] = useState<SelectionInfo | null>(null);
   const [phase, _setPhase] = useState<Phase>("idle");
+  // Táctil: el menú nativo del navegador (copiar/seleccionar todo) aparece
+  // junto a la selección y taparía el ⊕, así que se ancla abajo, fuera de su alcance.
+  const touch = useSyncExternalStore(
+    subscribeCoarse,
+    () => window.matchMedia(COARSE).matches,
+    () => false
+  );
   // Espejo para leer la fase dentro de listeners sin resuscribirlos.
   const phaseRef = useRef<Phase>("idle");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -155,8 +169,18 @@ export function SelectionSave({ node, book, chapter }: Props) {
     <>
       {phase === "idle" && (
         <button
-          style={{ left: sel.x, top: sel.y }}
+          style={
+            touch
+              ? {
+                  right: 16,
+                  bottom: "calc(env(safe-area-inset-bottom, 0px) + 4.5rem)",
+                }
+              : { left: sel.x, top: sel.y }
+          }
           onMouseDown={(e) => e.preventDefault()}
+          // En táctil, tocar el botón puede colapsar la selección antes del
+          // click y hacerlo desaparecer: se abre ya en pointerdown.
+          onPointerDown={() => touch && setPhase("choosing")}
           onClick={() => setPhase("choosing")}
           aria-label={`Agregar "${sel.term}" al banco de conceptos`}
           title="Agregar al banco de conceptos"
@@ -170,11 +194,24 @@ export function SelectionSave({ node, book, chapter }: Props) {
         <div
           role="dialog"
           aria-label="Agregar al banco de conceptos"
-          style={{
-            left: Math.max(8, Math.min(sel.x - 130, window.innerWidth - 296)),
-            top: Math.min(sel.y, window.innerHeight - 220),
-          }}
-          className="fixed z-40 w-[280px] max-w-[85vw] rounded-md border border-border bg-popover p-3 shadow-xl"
+          style={
+            touch
+              ? {
+                  left: 8,
+                  right: 8,
+                  bottom: "calc(env(safe-area-inset-bottom, 0px) + 4.5rem)",
+                }
+              : {
+                  left: Math.max(
+                    8,
+                    Math.min(sel.x - 130, window.innerWidth - 296)
+                  ),
+                  top: Math.min(sel.y, window.innerHeight - 220),
+                }
+          }
+          className={`fixed z-40 rounded-md border border-border bg-popover p-3 shadow-xl ${
+            touch ? "" : "w-[280px] max-w-[85vw]"
+          }`}
         >
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 break-words font-serif text-[15px] font-semibold leading-snug">
