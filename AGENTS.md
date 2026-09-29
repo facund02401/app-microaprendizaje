@@ -50,6 +50,8 @@
 
 ## Flujo de trabajo esperado
 
+- **Al abrir cada sesión, antes de hacer nada:** correr `git fetch origin` y comparar con `git log HEAD..origin/master` y `git branch -a`. Si hay commits o ramas nuevas en GitHub (por ejemplo, de sesiones en la nube), leerlos y sincronizar (pull o merge) **antes** de proponer o empezar trabajo, y avisar al dueño qué cambió. Motivo: el 2026-09-29 una sesión en la nube construyó la Fase 2 entera y la sesión local rehízo trabajo que ya existía.
+- **Al cerrar cada sesión:** commit y push, y dejar una línea de avance en la doc correspondiente (qué se hizo, cuándo, cómo se verificó).
 - Cambios pequeños y verificables; después de cada tarea indicar cómo comprobarla en el navegador.
 - Antes de commitear: `npm run lint` y `npm run build` sin errores.
 - No commitear secretos: las claves van en `.env.local` (ignorado por git); mantener `.env.example` como plantilla.
