@@ -3,9 +3,12 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
+import Link from "next/link";
+import { LibraryBig } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getBankServerSnapshot,
@@ -22,11 +25,19 @@ import { Breadcrumbs } from "@/components/shell/Breadcrumbs";
 import { FontToggle } from "@/components/shell/FontToggle";
 import { StatusBar } from "@/components/shell/StatusBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
-import { flatNodes } from "@/types";
-import type { Book } from "@/types";
+import { ContinuePanel } from "@/components/reader/ContinuePanel";
+import { flatNodes, nodeKey } from "@/types";
+import { EMPTY_RESPONSE } from "@/types";
+import type { Book, NodeResponse, SectionRow } from "@/types";
+import { syncBank } from "@/lib/concept-bank";
+import { ExportLink } from "@/components/reader/ExportLink";
 
 interface Props {
   book: Book;
+  /** Libros subidos: índice para preparar el siguiente capítulo a medida que se lee. */
+  processing?: { sections: SectionRow[]; model: string; aiReady: boolean };
+  /** Respuestas y notas ya guardadas en la cuenta, por id de nodo. */
+  responses?: Record<string, NodeResponse>;
 }
 
 /** Punto de corte escritorio/móvil: <768px el explorador es cajón flotante. */
@@ -43,10 +54,23 @@ function subscribeMq(onChange: () => void) {
  * En móvil (<768px) el explorador nace cerrado y se abre como cajón sobre
  * el texto, con fondo oscurecido que lo cierra al tocarlo.
  */
-export function ReaderView({ book }: Props) {
-  const nodes = flatNodes(book);
+export function ReaderView({ book, processing, responses: initialResponses }: Props) {
+  const cloud = book.source === "cloud";
+  const [responses, setResponses] = useState<Record<string, NodeResponse>>(initialResponses ?? {});
+
+  // Trae al dispositivo el banco de conceptos guardado en la cuenta.
+  useEffect(() => {
+    if (!cloud) return;
+    const t = setTimeout(() => void syncBank(), 0);
+    return () => clearTimeout(t);
+  }, [cloud]);
+  const nodes = useMemo(() => flatNodes(book), [book]);
   const total = nodes.length;
-  const [current, setCurrent] = useState(0);
+  // Se guarda la identidad del nodo (no su número): si se preparan capítulos
+  // anteriores, la lectura sigue en el mismo lugar.
+  const [currentKey, setCurrentKey] = useState<string | null>(null);
+  const found = currentKey ? nodes.findIndex(({ node }) => nodeKey(node) === currentKey) : -1;
+  const current = found >= 0 ? found : 0;
 
   // Detecta escritorio sin desincronización de hidratación.
   const isDesktop = useSyncExternalStore(
@@ -77,10 +101,30 @@ export function ReaderView({ book }: Props) {
 
   const sidebarOpen = override ?? (isDesktop ? (desktopPref ?? true) : false);
 
+  const positionKey = `nodos-pos-${book.documentId}`;
+
   const go = useCallback(
-    (next: number) => setCurrent(Math.min(total - 1, Math.max(0, next))),
-    [total]
+    (next: number) => {
+      const clamped = Math.min(nodes.length - 1, Math.max(0, next));
+      const key = nodeKey(nodes[clamped].node);
+      setCurrentKey(key);
+      try {
+        localStorage.setItem(positionKey, key);
+      } catch {}
+    },
+    [nodes, positionKey]
   );
+
+  // Retoma el último nodo leído de este libro (diferido: sin desajuste de hidratación).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(positionKey);
+        if (saved) setCurrentKey(saved);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(id);
+  }, [positionKey]);
 
   const toggleSidebar = useCallback(() => {
     const base = override ?? (isDesktop ? (desktopPref ?? true) : false);
@@ -121,6 +165,8 @@ export function ReaderView({ book }: Props) {
   }, [current]);
 
   const { chapter, node } = nodes[current];
+  // Último nodo preparado de este capítulo: se ofrece exportar sus apuntes.
+  const chapterEnds = current === total - 1 || nodes[current + 1].chapter.id !== chapter.id;
 
   return (
     <div className="flex h-dvh flex-col">
@@ -136,6 +182,14 @@ export function ReaderView({ book }: Props) {
           <span aria-hidden="true" className="font-mono text-sm">≡</span>
           <span className="sr-only">Explorador de nodos</span>
         </button>
+        <Link
+          href="/dashboard"
+          title="Volver a la biblioteca"
+          className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring/60 md:p-1.5"
+        >
+          <LibraryBig className="size-4" aria-hidden="true" />
+          <span className="sr-only">Biblioteca</span>
+        </Link>
         <Breadcrumbs
           items={[
             "Libros / Seminarios",
@@ -233,9 +287,12 @@ export function ReaderView({ book }: Props) {
             <ReaderTextDisplay node={node} book={book} chapter={chapter} />
             <NodeGlossarySection node={node} book={book} chapter={chapter} />
             <ReflectionBox
-              key={`${book.documentId}-${node.orderIndex}`}
+              key={nodeKey(node)}
               node={node}
               documentId={book.documentId}
+              cloud={cloud}
+              initial={responses[nodeKey(node)] ?? EMPTY_RESPONSE}
+              onSaved={(v) => setResponses((prev) => ({ ...prev, [nodeKey(node)]: v }))}
             />
 
             {/* Navegación inferior */}
@@ -261,6 +318,25 @@ export function ReaderView({ book }: Props) {
                 siguiente →
               </button>
             </nav>
+
+            {cloud && chapterEnds && (
+              <div className="mx-auto mt-10 flex max-w-[65ch] flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-5 py-4 font-sans">
+                <p className="text-[14px] leading-relaxed text-muted-foreground">
+                  Terminaste <span className="font-serif text-foreground">«{chapter.title}»</span>.
+                </p>
+                <ExportLink documentId={book.documentId} chapterId={chapter.id} label="Exportar apuntes del capítulo" />
+              </div>
+            )}
+
+            {processing && (
+              <ContinuePanel
+                documentId={book.documentId}
+                processing={processing}
+                position={node.position}
+                nearEnd={current >= total - 3}
+                atEnd={current === total - 1}
+              />
+            )}
           </div>
         </main>
       </div>

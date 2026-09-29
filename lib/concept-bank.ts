@@ -1,4 +1,6 @@
 import type { SavedConcept } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import { supabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Banco de conceptos personal (v1 estática, docs/01 §4):
@@ -8,6 +10,8 @@ import type { SavedConcept } from "@/types";
  */
 
 const KEY = "nodos-concept-bank";
+/** Ids borrados localmente que falta borrar en la cuenta. */
+const DELETED_KEY = "nodos-concept-bank-deleted";
 const EMPTY: SavedConcept[] = [];
 
 const listeners = new Set<() => void>();
@@ -44,6 +48,117 @@ function writeStorage(items: SavedConcept[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(items));
   } catch {}
+  scheduleSync();
+}
+
+function readDeleted(): string[] {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(DELETED_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function markDeleted(id: string) {
+  try {
+    localStorage.setItem(DELETED_KEY, JSON.stringify([...new Set([...readDeleted(), id])]));
+  } catch {}
+}
+
+// ── Sincronización con la cuenta (Supabase) ─────────────────────────
+// El dispositivo sigue siendo la fuente inmediata (funciona sin conexión);
+// la cuenta guarda una copia para otros dispositivos y para exportar.
+
+interface RemoteConcept {
+  id: string;
+  term: string;
+  definition: string;
+  status: "explained" | "pending";
+  document_id: string | null;
+  context_paragraph: string | null;
+  source_book_title: string;
+  source_chapter_title: string;
+  source_node_index: number;
+  saved_at: number;
+}
+
+const toRemote = (c: SavedConcept): RemoteConcept => ({
+  id: c.id,
+  term: c.term,
+  definition: c.definition,
+  status: c.status,
+  document_id: c.documentId ?? null,
+  context_paragraph: c.contextParagraph ?? null,
+  source_book_title: c.sourceBookTitle,
+  source_chapter_title: c.sourceChapterTitle,
+  source_node_index: c.sourceNodeIndex,
+  saved_at: c.savedAt,
+});
+
+const fromRemote = (r: RemoteConcept): SavedConcept => ({
+  id: r.id,
+  term: r.term,
+  definition: r.definition,
+  status: r.status,
+  documentId: r.document_id ?? undefined,
+  contextParagraph: r.context_paragraph ?? undefined,
+  sourceBookTitle: r.source_book_title,
+  sourceChapterTitle: r.source_chapter_title,
+  sourceNodeIndex: r.source_node_index,
+  savedAt: Number(r.saved_at),
+});
+
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let syncing: Promise<void> | null = null;
+
+function scheduleSync() {
+  if (typeof window === "undefined" || !supabaseConfigured) return;
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => void syncBank(), 1500);
+}
+
+/**
+ * Une el banco del dispositivo con el de la cuenta: sube lo local, baja lo que
+ * se guardó en otro dispositivo y aplica los borrados pendientes. Sin sesión o
+ * sin conexión no hace nada (se reintenta en el próximo cambio o apertura).
+ */
+export function syncBank(): Promise<void> {
+  if (typeof window === "undefined" || !supabaseConfigured) return Promise.resolve();
+  syncing ??= (async () => {
+    try {
+      const supabase = createClient();
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) return;
+
+      const deleted = readDeleted();
+      if (deleted.length) {
+        const { error } = await supabase.from("concept_bank").delete().in("id", deleted);
+        if (!error) localStorage.setItem(DELETED_KEY, "[]");
+      }
+
+      const local = readStorage();
+      if (local.length) {
+        await supabase.from("concept_bank").upsert(local.map(toRemote));
+      }
+
+      const { data } = await supabase.from("concept_bank").select("*");
+      const remote = ((data ?? []) as RemoteConcept[]).map(fromRemote);
+      const localIds = new Set(local.map((c) => c.id));
+      const pendingDeletes = new Set(readDeleted());
+      const incoming = remote.filter((c) => !localIds.has(c.id) && !pendingDeletes.has(c.id));
+      if (incoming.length) {
+        const merged = [...local, ...incoming].sort((a, b) => b.savedAt - a.savedAt);
+        localStorage.setItem(KEY, JSON.stringify(merged));
+        emit();
+      }
+    } catch {
+      // Sin conexión: queda para la próxima.
+    } finally {
+      syncing = null;
+    }
+  })();
+  return syncing;
 }
 
 /** Snapshot estable para useSyncExternalStore en cliente. */
@@ -75,6 +190,7 @@ export function isSaved(conceptId: string, bank?: SavedConcept[]): boolean {
 export function toggleSaved(concept: Omit<SavedConcept, "savedAt">): boolean {
   const bank = readStorage();
   if (bank.some((c) => c.id === concept.id)) {
+    markDeleted(concept.id);
     writeStorage(bank.filter((c) => c.id !== concept.id));
     emit();
     return false;
@@ -108,6 +224,7 @@ export function saveFromSelection(
 }
 
 export function removeFromBank(conceptId: string) {
+  markDeleted(conceptId);
   writeStorage(readStorage().filter((c) => c.id !== conceptId));
   emit();
 }

@@ -2,7 +2,35 @@
 
 > **Regla:** este es el lugar único donde vive lo próximo a hacer. Todo agente debe leerlo al empezar una sesión. Las decisiones ya tomadas se registran acá para no re-discutirlas. Lo implementado se tacha y se resume en `docs/06-roadmap.md`.
 >
-> **Para Fase 2 y 3:** el desglose paso a paso, en milestones chicos y con lo que necesita al dueño marcado aparte, vive en [`docs/09-plan-implementacion.md`](docs/09-plan-implementacion.md) — empezar sesión ahí cuando se retome la implementación.
+> **Para Fase 2 y 3:** el desglose paso a paso, en milestones chicos y con lo que necesita al dueño marcado aparte, vive en [`docs/11-plan-implementacion.md`](docs/11-plan-implementacion.md) — empezar sesión ahí cuando se retome la implementación.
+
+---
+
+## 0. Fase 2 online — lo que falta (actualizado 2026-09-23)
+
+### 👤 Pasos del dueño (una sola vez; guía detallada en `docs/09` §2)
+
+- [ ] **Paso 1:** Supabase → proyecto `nodos` → Authentication → Email → apagar "Confirm email".
+- [ ] **Paso 2:** crear clave en console.anthropic.com, cargar crédito, pegarla en Vercel como `ANTHROPIC_API_KEY` y hacer Redeploy.
+- [ ] **Paso 3:** crear la cuenta en https://nodos-seven.vercel.app ("Primera vez").
+- [ ] **Paso 4:** instalar la app en el celular (Agregar a pantalla de inicio).
+- [ ] **Probar con un texto real corto** (un artículo) y contar cómo se sintieron los nodos: largo, títulos, preguntas. Con eso se ajustan las instrucciones de Claude.
+- [ ] Decidir si se mergea la rama `claude/mobile-app-usage-us3sfw` a `master` (así cada cambio futuro se publica solo).
+
+### ⚪ Próximas tareas técnicas (sin prioridad asignada todavía)
+
+| # | Tarea | Por qué |
+|---|-------|---------|
+| F2-1 | Progreso de lectura sincronizado (tabla en Supabase) | Hoy el último nodo leído se guarda por dispositivo. |
+| ✅ F2-2 | Banco de conceptos sincronizado con la cuenta (2026-09-24) | Tabla `concept_bank` + `syncBank()`; sigue funcionando sin conexión. |
+| F2-3 | T4/T5 con la misma clave de Claude | La clave ya existe tras el paso 2. |
+| F2-4 | Preguntas de recuperación rotativas | Pospuesto por costo (docs/10 D11). |
+| F2-5 | Procesamiento en segundo plano (Supabase Edge Functions) | Hoy hay que dejar la pantalla abierta (docs/10 D5). |
+| F2-6 | Modo sin conexión para libros ya procesados | docs/10 D10. |
+| F2-7 | Reprocesar un documento / editar cortes de nodos a mano | Si un corte no convence. |
+| ✅ F2-8 | Procesar por partes elegidas del índice, a medida que se lee (2026-09-24) | Ahorro: se paga solo lo que se lee (docs/10 D12). |
+| ✅ F2-9 | Artículos como una sola pieza; reconstrucciones marcadas en escaneados; respuestas/notas guardadas y exportación PDF (2026-09-24) | docs/10 D13–D15. |
+| F2-10 | Número de página en las referencias del banco exportado | Hoy la ubicación es capítulo · nodo. |
 
 ---
 

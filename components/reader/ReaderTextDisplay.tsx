@@ -2,6 +2,8 @@
 
 import { Fragment } from "react";
 import { GlossaryTooltip } from "@/components/reader/GlossaryTooltip";
+import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { ReconstructedMark } from "@/components/reader/ReconstructedMark";
 import type { Chapter, ConceptNode } from "@/types";
 import type { Book } from "@/types";
 
@@ -41,42 +43,73 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
   );
 
   return node.excerptParagraphs.map((paragraph, pIndex) => {
+    if (paragraph.startsWith(HEADING_PREFIX)) {
+      return (
+        <h3 key={pIndex} className="pt-2 text-[1.1em] leading-snug font-bold">
+          {paragraph.slice(HEADING_PREFIX.length)}
+        </h3>
+      );
+    }
+    if (paragraph.startsWith(NOTE_PREFIX)) {
+      return (
+        <p
+          key={pIndex}
+          className="border-l-2 border-border pl-3 text-[0.8em] leading-relaxed text-muted-foreground"
+        >
+          {paragraph.slice(NOTE_PREFIX.length)}
+        </p>
+      );
+    }
+
     const parts: React.ReactNode[] = [];
-    let remaining = paragraph;
     let key = 0;
 
-    while (pending.size > 0) {
-      let earliest: {
-        term: string;
-        start: number;
-        gloss: ConceptNode["contextGlossary"][number];
-      } | null = null;
-
-      for (const [lowerTerm, gloss] of pending) {
-        const idx = remaining.toLowerCase().indexOf(lowerTerm);
-        if (idx >= 0 && (!earliest || idx < earliest.start)) {
-          earliest = { term: lowerTerm, start: idx, gloss };
-        }
+    // Marcas de escaneo (⟦reconstruido⟧ / [ilegible]) aparte; el glosario solo en el resto.
+    for (const segment of paragraph.split(/(⟦[^⟧]+⟧|\[ilegible\])/)) {
+      if (!segment) continue;
+      if (segment === "[ilegible]") {
+        parts.push(<ReconstructedMark key={key++} text={segment} illegible />);
+        continue;
       }
-      if (!earliest) break;
+      if (segment.startsWith("⟦") && segment.endsWith("⟧")) {
+        parts.push(<ReconstructedMark key={key++} text={segment.slice(1, -1)} />);
+        continue;
+      }
 
-      const end = earliest.start + earliest.term.length;
-      parts.push(
-        <Fragment key={key++}>{remaining.slice(0, earliest.start)}</Fragment>
-      );
-      parts.push(
-        <GlossaryTooltip
-          key={key++}
-          gloss={earliest.gloss}
-          book={book}
-          chapter={chapter}
-          nodeIndex={node.orderIndex}
-        />
-      );
-      remaining = remaining.slice(end);
-      pending.delete(earliest.term);
+      let remaining = segment;
+      while (pending.size > 0) {
+        let earliest: {
+          term: string;
+          start: number;
+          gloss: ConceptNode["contextGlossary"][number];
+        } | null = null;
+
+        for (const [lowerTerm, gloss] of pending) {
+          const idx = remaining.toLowerCase().indexOf(lowerTerm);
+          if (idx >= 0 && (!earliest || idx < earliest.start)) {
+            earliest = { term: lowerTerm, start: idx, gloss };
+          }
+        }
+        if (!earliest) break;
+
+        const end = earliest.start + earliest.term.length;
+        parts.push(
+          <Fragment key={key++}>{remaining.slice(0, earliest.start)}</Fragment>
+        );
+        parts.push(
+          <GlossaryTooltip
+            key={key++}
+            gloss={earliest.gloss}
+            book={book}
+            chapter={chapter}
+            nodeIndex={node.orderIndex}
+          />
+        );
+        remaining = remaining.slice(end);
+        pending.delete(earliest.term);
+      }
+      parts.push(<Fragment key={key++}>{remaining}</Fragment>);
     }
-    parts.push(<Fragment key={key++}>{remaining}</Fragment>);
 
     return <p key={pIndex}>{parts}</p>;
   });

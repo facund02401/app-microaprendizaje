@@ -13,6 +13,12 @@
 
 ---
 
+## Registro de avances
+
+- **2026-09-29** — Se unió la rama `claude/mobile-app-usage-us3sfw` (Fase 2 completa: login, subida, procesamiento con Claude, Supabase, Vercel) con `master`. Verificado: `npm run lint` (0 errores) y `npm run build` pasan. Quedan pendientes del dueño: cargar `ANTHROPIC_API_KEY` en Vercel + Redeploy (docs/09-despliegue-y-operacion.md, paso 2) y, para probar en local, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en `.env.local`. Gemini quedó descartado (docs/10 D1). El cargador local de libros quedó en `lib/local-books.ts`, sin uso.
+
+---
+
 ## 1. Preguntas abiertas
 
 Preguntas que quedaron pendientes de esta sesión. Resolverlas no bloquea todo el plan — cada una dice a qué milestone afecta.

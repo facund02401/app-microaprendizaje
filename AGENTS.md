@@ -15,14 +15,15 @@
 5. `docs/08-investigacion-ux.md` — decisiones de diseño investigadas
 6. `APRENDIZAJES.md` — **leer siempre al empezar; actualizar al cometer/corregir un error**
 7. `TODO.md` — lugar centralizado de lo próximo a hacer y decisiones frescas del dueño
-8. `docs/09-plan-implementacion.md` — desglose paso a paso de Fase 2 y 3 en milestones chicos; **punto de entrada para retomar la implementación**, incluye qué necesita al dueño y preguntas abiertas sin resolver
+8. `docs/09-despliegue-y-operacion.md` (operación, cuentas, pasos manuales) y `docs/10-decisiones-fase2.md` (decisiones del "directorio")
+9. `docs/11-plan-implementacion.md` — desglose de Fase 2 y 3 en milestones; **ojo:** se escribió antes de que la otra rama construyera la Fase 2, así que varios milestones (M1–M4, M12) ya están hechos; verificar contra `docs/09-despliegue-y-operacion.md` antes de retomar
 
 ## Stack mandatorio (no negociable)
 
 - Next.js 14+ App Router con **TypeScript**
 - Tailwind CSS + Shadcn UI + `@tailwindcss/typography`
-- Supabase (PostgreSQL, Storage) — desde Fase 2; Auth diferido mientras la app sea de un solo usuario (decisión 2026-09-08, ver TODO.md)
-- Google Gemini Flash (ingesta) + Anthropic Claude (diálogo) — desde Fase 2
+- Supabase (PostgreSQL, Auth, Storage) — desde Fase 2
+- Anthropic Claude para ingesta y diálogo — desde Fase 2 (el dueño reemplazó Gemini el 2026-09-23; ver docs/10 D1). Modelo por `CLAUDE_MODEL`, default `claude-opus-5`
 - El código vive en la **raíz del repo**; la documentación en `docs/`
 
 ## Reglas de producto (de Bases Cognitivas — jamás violar)
@@ -58,4 +59,25 @@
 
 ## Fase actual
 
-Ver `docs/06-roadmap.md`. **Fase 1 — MVP estático: completa**, más adaptación móvil v1.1 (cajón flotante, glosario táctil). Próxima: **Fase 2 — backend Supabase + ingesta con IA** (las cuentas se crean desde cero; ver docs/03 y docs/04).
+Ver `docs/06-roadmap.md`. **Fase 1: completa.** **Fase 2 — núcleo completo (2026-09-23):** Supabase (proyecto `nodos`), login solo del dueño, subida de PDF/escaneado/Word/EPUB/TXT, ingesta con Claude por pasos, lector online y despliegue en Vercel. Detalles y pasos manuales en `docs/09`; decisiones en `docs/10`; pendientes en `TODO.md`.
+
+## Reglas técnicas de Fase 2
+
+- **Texto intacto por construcción:** Claude nunca devuelve el texto del autor; solo el número de párrafo donde empieza cada nodo (`lib/ai/segment.ts`). No cambiar esto sin consultar al dueño.
+- **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`). En escaneados, `⟦…⟧` = reconstruido por contexto y `[ilegible]` = no deducible (docs/10 D15); el lector los muestra marcados, nunca en silencio.
+- **Textos breves (≤ 15.000 palabras / 40 págs. escaneadas):** una sola parte, sin índice (docs/10 D13).
+- **Apuntes:** `node_responses` (respuesta + nota por nodo) y `concept_bank` (espejo del banco local, se sincroniza con `syncBank()`); exportación PDF en `/api/documents/[id]/export[?chapter=]` (`lib/export/`). Nunca mostrar "guardado" sin haber guardado.
+- **Todo trabajo con IA es por pasos ≤ 300 s** (`/api/documents/[id]/step`), reanudable y con costo estimado antes de empezar.
+- **Procesamiento por partes (docs/10 D12):** el lector elige partes del índice (`document_sections`); se prepara una a la vez y la siguiente al acercarse al final. Ordenar nodos/capítulos siempre por `start_position`, nunca por `order_index`.
+- **Seguridad:** RLS + `allowed_emails`; nunca exponer `ANTHROPIC_API_KEY` al navegador; las migraciones nuevas van en `supabase/migrations/`.
+- **Este entorno de Claude Code no llega a supabase.co ni vercel.com por red:** usar los MCP de Supabase/Vercel y probar el motor con los dobles de prueba descritos en APRENDIZAJES.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
