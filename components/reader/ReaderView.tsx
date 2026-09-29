@@ -298,7 +298,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
             {/* Navegación inferior */}
             <nav
               aria-label="Nodos vecinos"
-              className="mx-auto mt-12 flex max-w-[65ch] items-center justify-between font-mono text-[13px] sm:text-[12px]"
+              className="mx-auto mt-12 flex max-w-[42rem] items-center justify-between font-mono text-[13px] sm:text-[12px]"
             >
               <button
                 onClick={() => go(current - 1)}
@@ -320,7 +320,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
             </nav>
 
             {cloud && chapterEnds && (
-              <div className="mx-auto mt-10 flex max-w-[65ch] flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-5 py-4 font-sans">
+              <div className="mx-auto mt-10 flex max-w-[42rem] flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-5 py-4 font-sans">
                 <p className="text-[14px] leading-relaxed text-muted-foreground">
                   Terminaste <span className="font-serif text-foreground">«{chapter.title}»</span>.
                 </p>

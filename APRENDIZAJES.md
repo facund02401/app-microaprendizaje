@@ -122,3 +122,8 @@
 - **Contexto:** Al seleccionar texto en el celular, el navegador muestra su propio menú (copiar / seleccionar todo) pegado a la selección, justo donde flotaba el ⊕.
 - **Corrección aplicada:** con `(pointer: coarse)` el ⊕ y la tarjeta se anclan abajo de la pantalla (fuera del alcance del menú nativo); en escritorio sigue junto a la selección. En táctil el botón abre en `pointerdown` porque tocarlo puede colapsar la selección antes del `click`. Archivo: `components/reader/SelectionSave.tsx`.
 - **Lección:** En móvil nunca poner controles pegados a una selección de texto; anclarlos a un borde de la pantalla.
+
+### 2026-09-29 — Al achicar el texto, la columna de lectura se angostaba y los títulos quedaban desproporcionados
+- **Contexto:** El ancho `max-w-[65ch]` estaba en el mismo elemento cuyo tamaño de fuente cambia con "Aa"; `ch` depende de la fuente, así que la columna se encogía en píxeles. Además título (28px) y etiqueta (13px) eran fijos.
+- **Corrección aplicada:** ancho fijo `max-w-[42rem]` en el artículo y en los bloques de debajo (reflexión, continuar, navegación, glosario); título `1.5em`, etiqueta `0.7em`, subtítulos `1.15em`, notas `0.85em`. Archivos: `components/reader/*`.
+- **Lección:** Nunca definir el ancho de columna en `ch` sobre un elemento con tamaño de fuente variable; y todo lo que acompaña al texto va en `em`, no en `px`.

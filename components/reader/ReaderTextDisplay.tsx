@@ -9,7 +9,7 @@ import type { Book } from "@/types";
 
 /**
  * Lienzo central de lectura (docs/07): serif ajustable vía --reading-fs
- * (16–24px, default 19), interlineado 1.8, ancho 65ch, párrafos con margen
+ * (16–24px, default 19), interlineado 1.8, ancho 42rem, párrafos con margen
  * 1.5em y sin sangría. Resalta la primera aparición de cada término.
  */
 export function ReaderTextDisplay({
@@ -24,12 +24,12 @@ export function ReaderTextDisplay({
   return (
     <article
       id="node-article"
-      className="max-w-[65ch] mx-auto font-serif text-[length:var(--reading-fs,19px)] leading-[1.8] text-foreground"
+      className="max-w-[42rem] mx-auto font-serif text-[length:var(--reading-fs,19px)] leading-[1.8] text-foreground"
     >
-      <h1 className="font-sans text-[13px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-2">
+      <h1 className="font-sans text-[0.7em] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-2">
         Nodo {node.orderIndex}
       </h1>
-      <h2 className="text-[28px] leading-snug font-bold mb-10">{node.title}</h2>
+      <h2 className="text-[1.5em] leading-snug font-bold mb-10">{node.title}</h2>
       <div className="space-y-[1.5em] [&_p]:indent-0">
         {renderParagraphs(node, book, chapter)}
       </div>
@@ -45,7 +45,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
   return node.excerptParagraphs.map((paragraph, pIndex) => {
     if (paragraph.startsWith(HEADING_PREFIX)) {
       return (
-        <h3 key={pIndex} className="pt-2 text-[1.1em] leading-snug font-bold">
+        <h3 key={pIndex} className="pt-2 text-[1.15em] leading-snug font-bold">
           {paragraph.slice(HEADING_PREFIX.length)}
         </h3>
       );
@@ -54,7 +54,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
       return (
         <p
           key={pIndex}
-          className="border-l-2 border-border pl-3 text-[0.8em] leading-relaxed text-muted-foreground"
+          className="border-l-2 border-border pl-3 text-[0.85em] leading-relaxed text-muted-foreground"
         >
           {paragraph.slice(NOTE_PREFIX.length)}
         </p>

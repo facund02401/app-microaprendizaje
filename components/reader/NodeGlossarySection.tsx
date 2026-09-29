@@ -20,7 +20,7 @@ export function NodeGlossarySection({ node, book, chapter }: Props) {
   if (node.contextGlossary.length === 0) return null;
 
   return (
-    <details className="group max-w-[65ch] mx-auto mt-12 border-t border-border pt-6">
+    <details className="group max-w-[42rem] mx-auto mt-12 border-t border-border pt-6">
       <summary className="flex cursor-pointer list-none items-center justify-between font-sans text-[13px] font-medium tracking-[0.14em] uppercase text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
         Glosario del nodo ({node.contextGlossary.length})
         <span

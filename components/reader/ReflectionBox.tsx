@@ -140,7 +140,7 @@ export function ReflectionBox({ node, documentId, cloud, initial, onSaved }: Pro
   return (
     <section
       aria-label="Elaboración dialógica"
-      className="mx-auto mt-14 max-w-[65ch] border-t border-border pt-8"
+      className="mx-auto mt-14 max-w-[42rem] border-t border-border pt-8"
     >
       <div className="mb-4 flex items-center justify-between gap-4">
         <h3 className="font-sans text-[13px] font-medium tracking-[0.14em] text-muted-foreground uppercase">

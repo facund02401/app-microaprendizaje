@@ -57,7 +57,7 @@ export function ContinuePanel({ documentId, processing, position, nearEnd, atEnd
   return (
     <aside
       aria-live="polite"
-      className="mx-auto mt-10 max-w-[65ch] space-y-3 rounded-lg border border-border bg-card p-5 font-sans"
+      className="mx-auto mt-10 max-w-[42rem] space-y-3 rounded-lg border border-border bg-card p-5 font-sans"
     >
       {p.running ? (
         <>
