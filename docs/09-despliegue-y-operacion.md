@@ -18,7 +18,16 @@ La app y la base están en São Paulo (región más cercana a Uruguay/Argentina)
 
 Estos pasos no los puede hacer Claude Code por seguridad: son configuraciones de tus cuentas.
 
-### Paso 1 — Supabase: que no pida confirmar el email (2 min)
+**Estado al 2026-09-29:**
+
+| Paso | Estado |
+|---|---|
+| 1. Supabase sin confirmación de email | ✓ hecho (la cuenta quedó confirmada) |
+| 2. Clave de Claude en Vercel | ⚪ **pendiente: es lo único que falta** |
+| 3. Crear tu cuenta en Nodos | ✓ hecho |
+| 4. Instalar en el celular | ⚪ cuando quieras |
+
+### Paso 1 — Supabase: que no pida confirmar el email (2 min) · ✓ hecho
 
 El servicio de email gratuito de Supabase solo manda correos a direcciones autorizadas, y puede fallar. Como **solo tu email puede crear cuenta** (la base rechaza cualquier otro), la confirmación por email no agrega seguridad y conviene apagarla.
 
@@ -39,11 +48,11 @@ El servicio de email gratuito de Supabase solo manda correos a direcciones autor
 5. **Add**: nombre `ANTHROPIC_API_KEY`, valor = la clave, entornos: Production y Preview. Guardá.
 6. Pestaña **Deployments** → en el primero de la lista, menú **⋯** → **Redeploy**. Esperá 2 minutos.
 
-*Cómo verificar:* al subir un documento, la pantalla ya no muestra "Falta conectar Claude" y el botón **Procesar con IA** queda activo.
+*Cómo verificar:* al subir un documento, la pantalla ya no muestra "Falta conectar Claude" y el botón **Preparar y empezar a leer** queda activo. También podés pedirle a Claude Code que verifique que la variable quedó cargada.
 
 > 🔒 La clave es como una tarjeta de crédito: no la pegues en chats, emails ni en el repositorio. Vive solo en Vercel.
 
-### Paso 3 — Crear tu cuenta en Nodos (1 min)
+### Paso 3 — Crear tu cuenta en Nodos (1 min) · ✓ hecho
 
 1. Abrí https://nodos-seven.vercel.app → **Entrar a la biblioteca**.
 2. Pestaña **Primera vez** → tu email → una contraseña (mínimo 8 caracteres) → **Crear mi cuenta**.
