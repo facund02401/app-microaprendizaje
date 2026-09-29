@@ -28,7 +28,7 @@
 
 ## Reglas de producto (de Bases Cognitivas — jamás violar)
 
-1. **Chunking conceptual, nunca por páginas/palabras**: nodos de 300–600 palabras con unidad argumental completa.
+1. **Chunking conceptual, nunca por páginas/palabras**: nodos con unidad argumental completa. Default 300–600 palabras; el usuario puede elegir Medios (600–1000) o Largos (1000–1500) en la Biblioteca (`lib/node-size.ts`, guardado en `user_metadata.node_size`; decisión del dueño 2026-09-29). Aplica solo a lo que se prepare después.
 2. **Andamiaje, no simplificación**: el texto del autor va intacto, sin resúmenes.
 3. **Diseño antipunitivo**: prohibido contadores de deuda, rachas perdidas, alertas rojas o acumuladores de pendientes. El mapa se recalcula sin sanción.
 4. **Autoexplicación obligatoria** para completar un nodo; feedback de IA ≤150 palabras, tono colega, NO evaluativo (sin notas/puntajes).

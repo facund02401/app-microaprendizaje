@@ -109,6 +109,7 @@ Como se procesa por partes, solo se paga lo que elegís leer. La app muestra la 
 
 ## 6. Referencia técnica (para agentes y desarrolladores)
 
+- **Tamaño de nodo (2026-09-29):** preferencia de la cuenta (Biblioteca → "Tamaño de los nodos nuevos"), guardada en `user_metadata.node_size` de Supabase Auth (sin tabla nueva). `step` la lee en cada paso y ajusta el prompt (`segmentSystem`). Lo ya procesado no se re-segmenta. Verificado con lint, tsc y build; falta probarlo en línea.
 - **Variables de entorno** (`.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (públicas por diseño; la seguridad la dan las reglas RLS), `ANTHROPIC_API_KEY` (secreta, solo servidor), `CLAUDE_MODEL` (opcional).
 - **IDs:** Supabase `evgetytknfysnayrgjzi` (sa-east-1) · Vercel `prj_Iyp6VTyw5teBO8boQZX0Bpni1z1O` (team `consultorio11`, región `gru1` vía `vercel.json`).
 - **Esquema:** `supabase/migrations/` (tablas `documents`, `document_pages`, `document_texts`, `chapters`, `nodes`; bucket privado `documents`). Aplicar migraciones nuevas con el MCP de Supabase (`apply_migration`) y guardarlas en esa carpeta.

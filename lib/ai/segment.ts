@@ -1,7 +1,8 @@
 import "server-only";
 import { z } from "zod";
 import { askStructured } from "./claude";
-import { SEGMENT_SYSTEM, segmentUserPrompt } from "./prompts";
+import { segmentSystem, segmentUserPrompt } from "./prompts";
+import type { NodeSize } from "@/lib/node-size";
 import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
 
 const NodeSchema = z.object({
@@ -23,6 +24,7 @@ export interface SegmentContext {
   chapterTitle: string | null;
   previousNodeTitle: string | null;
   isEnd: boolean;
+  nodeSize: NodeSize;
 }
 
 /**
@@ -38,7 +40,7 @@ export async function segmentWindow(
 
   const { nodes } = await askStructured({
     schema: SegmentSchema,
-    system: SEGMENT_SYSTEM,
+    system: segmentSystem(ctx.nodeSize),
     content: [{ type: "text", text: segmentUserPrompt({ ...ctx, numberedParagraphs: numbered }) }],
     maxTokens: 32000,
     effort: "medium",

@@ -88,3 +88,12 @@
 - **Técnica:** la transcripción marca lo reconstruido entre ⟦ ⟧ solo cuando el contexto lo hace muy probable; si no, escribe [ilegible]. Nunca inventa.
 - **Diseño:** en el lector, lo reconstruido lleva subrayado discontinuo discreto; al tocarlo: "Reconstruido por contexto: en el original escaneado esta parte se lee mal". En el índice, cada parte lista cuántas palabras se reconstruyeron.
 - **Coherencia con "texto intacto":** nada se corrige en silencio; el lector siempre sabe qué es del original y qué es inferido.
+
+### D16 — Sacar un texto ya leído de la biblioteca *(pedido del dueño, 2026-09-29)*
+- **Hallazgo:** la opción existía pero escondida (Biblioteca → "índice y partes" → al final "Eliminar documento"), sin avisar que se pierden las respuestas y notas, y sin mostrar error si fallaba.
+- **Usuario:** "Un texto que ya terminé no tiene por qué seguir ocupando la lista."
+- **Técnica:** borrar `documents` arrastra en cascada nodos, capítulos, partes y `node_responses`; los conceptos (`concept_bank`) **no** se borran porque guardan el título del libro como texto.
+- **Diseño:** botón discreto "Eliminar de la biblioteca" en cada tarjeta (mismo componente que en la pantalla del documento). La confirmación explica qué se pierde y ofrece **bajar los apuntes en PDF** antes. Antipunitivo: nunca aparece como pendiente ni se sugiere borrar.
+- **Negocio:** cero costo; no hay papelera.
+- **Decisión:** eliminación definitiva con aviso + PDF previo (`components/library/DeleteDocument.tsx`). Si falla la base, se muestra el error y no se dice "eliminado".
+- **Revertir / alternativa:** si el dueño prefiere "archivar" (ocultar sin borrar), agregar columna `archived_at` y filtro en el dashboard.

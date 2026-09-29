@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { DeleteDocument } from "@/components/library/DeleteDocument";
 import { SectionIndex } from "@/components/processing/SectionIndex";
 import { ExportLink } from "@/components/reader/ExportLink";
 import { isActive, sectionPercent, useProcessing } from "@/components/processing/useProcessing";
 import { estimateSection, formatCostRange, formatMinutes, sumEstimates } from "@/lib/ingest/estimate";
 import { createClient } from "@/lib/supabase/client";
-import { DOCUMENTS_BUCKET } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 import type { DocumentRow, SectionRow } from "@/types";
 
@@ -33,7 +33,6 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
   const [selected, setSelected] = useState(() => initialSelection(initialSections));
   const [analyzing, setAnalyzing] = useState(initial.status === "uploaded");
   const [justReady, setJustReady] = useState<SectionRow | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Al abrir: leer el archivo nuevo (gratis).
   useEffect(() => {
@@ -103,14 +102,6 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
     if (field === "title" && !clean) return;
     if ((doc[field] ?? "") === clean) return;
     await createClient().from("documents").update({ [field]: clean || null }).eq("id", doc.id);
-    router.refresh();
-  }
-
-  async function remove() {
-    const supabase = createClient();
-    await supabase.storage.from(DOCUMENTS_BUCKET).remove([doc.file_path]);
-    await supabase.from("documents").delete().eq("id", doc.id);
-    router.push("/dashboard");
     router.refresh();
   }
 
@@ -316,23 +307,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
       )}
 
       <div className="mt-10 border-t border-border pt-4">
-        {confirmDelete ? (
-          <div className="flex flex-wrap items-center gap-3 font-sans text-[13.5px]">
-            <span>¿Eliminar el documento y todos sus nodos?</span>
-            <SecondaryButton onClick={() => void remove()}>Sí, eliminar</SecondaryButton>
-            <button onClick={() => setConfirmDelete(false)} className="min-h-10 px-2 text-muted-foreground hover:text-foreground">
-              Cancelar
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            disabled={p.running}
-            className="min-h-10 font-sans text-[13px] text-muted-foreground hover:text-foreground disabled:opacity-40"
-          >
-            Eliminar documento
-          </button>
-        )}
+        <DeleteDocument documentId={doc.id} filePath={doc.file_path} disabled={p.running} redirectTo="/dashboard" />
       </div>
     </div>
   );

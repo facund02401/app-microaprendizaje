@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { NodeSizeSetting } from "@/components/library/NodeSizeSetting";
+import { parseNodeSize, type NodeSize } from "@/lib/node-size";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { LibraryCard } from "@/components/library/LibraryCard";
 import { countSections } from "@/lib/documents";
@@ -14,10 +16,12 @@ export const dynamic = "force-dynamic";
 export default async function Dashboard() {
   let documents: (DocumentRow & { document_sections?: { status: string }[] })[] = [];
   let signedIn = false;
+  let nodeSize: NodeSize = "short";
 
   if (supabaseConfigured) {
     const { supabase, user } = await getUser();
     signedIn = Boolean(user);
+    nodeSize = parseNodeSize(user?.user_metadata?.node_size);
     if (user) {
       const { data } = await supabase
         .from("documents")
@@ -47,6 +51,8 @@ export default async function Dashboard() {
               </Link>
             )}
           </div>
+
+          {signedIn && <NodeSizeSetting initial={nodeSize} />}
 
           <ul className="space-y-3">
             {documents.map((doc) => (

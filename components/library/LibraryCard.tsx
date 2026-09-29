@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeleteDocument } from "@/components/library/DeleteDocument";
 import { statusLabel, type SectionCounts } from "@/lib/documents";
 import { cn } from "@/lib/utils";
 import type { DocumentRow } from "@/types";
@@ -39,16 +40,19 @@ export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: Section
             .join(" · ")}
         </p>
       </Link>
-      {readable && (
-        <div className="flex gap-4 border-t border-border px-5 py-2 font-mono text-[11.5px]">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 border-t border-border px-5 py-1 font-mono text-[11.5px]">
+        {readable ? (
           <Link
             href={`/dashboard/documents/${doc.id}`}
             className="py-2 text-muted-foreground hover:text-foreground"
           >
             índice y partes →
           </Link>
-        </div>
-      )}
+        ) : (
+          <span />
+        )}
+        <DeleteDocument documentId={doc.id} filePath={doc.file_path} disabled={processing} className="text-[11.5px]" />
+      </div>
     </div>
   );
 }

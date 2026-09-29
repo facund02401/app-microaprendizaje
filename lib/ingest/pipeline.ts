@@ -7,6 +7,7 @@ import { DOCUMENTS_BUCKET } from "@/lib/supabase/config";
 import { SECTION_COLUMNS, type DocumentRow, type SectionRow } from "@/types";
 import { docxToParagraphs } from "./docx";
 import { epubToParagraphs } from "./epub";
+import type { NodeSize } from "@/lib/node-size";
 import { WINDOW_WORDS } from "./estimate";
 import { analyzePdf, assemblePages, type PagedParagraph, type PageContent } from "./pdf";
 import {
@@ -284,7 +285,8 @@ async function segmentSection(
   sb: SupabaseClient,
   doc: DocumentRow,
   section: SectionRow,
-  paragraphs: string[]
+  paragraphs: string[],
+  nodeSize: NodeSize
 ): Promise<number> {
   // Limpia restos de un paso anterior que falló a mitad de camino.
   await sb.from("nodes").delete().eq("document_id", doc.id).gt("order_index", doc.total_nodes);
@@ -323,6 +325,7 @@ async function segmentSection(
     chapterTitle: lastChapter?.title ?? section.title,
     previousNodeTitle: lastNode?.title ?? null,
     isEnd,
+    nodeSize,
   });
 
   // El último nodo de la ventana puede estar incompleto: se revisa en la próxima,
@@ -403,7 +406,7 @@ async function segmentSection(
 }
 
 /** Una unidad de trabajo sobre la sección pedida o la primera de la cola. */
-async function step(sb: SupabaseClient, doc: DocumentRow, preferIdx?: number): Promise<DocumentRow> {
+async function step(sb: SupabaseClient, doc: DocumentRow, nodeSize: NodeSize, preferIdx?: number): Promise<DocumentRow> {
   const sections = await loadSections(sb, doc.id);
   const active = (s: SectionRow) => s.status === "queued" || s.status === "processing";
   const target =
@@ -420,7 +423,7 @@ async function step(sb: SupabaseClient, doc: DocumentRow, preferIdx?: number): P
     if (target.kind === "pages" && !paragraphs) {
       paragraphs = await prepareScannedBlock(sb, doc, target);
     }
-    if (paragraphs) totalNodes = await segmentSection(sb, doc, target, paragraphs);
+    if (paragraphs) totalNodes = await segmentSection(sb, doc, target, paragraphs, nodeSize);
   }
 
   const after = await loadSections(sb, doc.id);
@@ -452,7 +455,7 @@ async function queue(
 
 export type Action =
   | { kind: "analyze" }
-  | { kind: "step"; section?: number }
+  | { kind: "step"; section?: number; nodeSize: NodeSize }
   | { kind: "queue"; add: number[]; remove: number[] };
 
 /**
@@ -479,7 +482,7 @@ export async function runDocumentAction(
     } else if (action.kind === "queue") {
       updated = await queue(sb, doc, action.add, action.remove);
     } else {
-      updated = await step(sb, doc, action.section);
+      updated = await step(sb, doc, action.nodeSize, action.section);
     }
     updated = await save(sb, id, { lock_until: null });
     return { document: updated, sections: await loadSections(sb, id) };

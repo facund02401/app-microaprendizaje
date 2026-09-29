@@ -5,14 +5,21 @@
  * cada nodo, y el corte lo hace el código sobre el original.
  */
 
-export const SEGMENT_SYSTEM = `Sos un especialista en teoría psicoanalítica, filosofía y didáctica de textos difíciles. Trabajás para "Nodos", una app donde un psicoanalista estudia textos teóricos densos en micro-dosis de 5 a 10 minutos.
+import { NODE_SIZES, type NodeSize } from "@/lib/node-size";
+
+export function segmentSystem(size: NodeSize): string {
+  const { target, tooShort } = NODE_SIZES[size];
+  return SEGMENT_SYSTEM_BASE.replace("{TARGET}", target).replace("{TOO_SHORT}", String(tooShort));
+}
+
+const SEGMENT_SYSTEM_BASE = `Sos un especialista en teoría psicoanalítica, filosofía y didáctica de textos difíciles. Trabajás para "Nodos", una app donde un psicoanalista estudia textos teóricos densos en micro-dosis de 5 a 10 minutos.
 
 Vas a recibir un fragmento de un libro dividido en párrafos numerados ([P1], [P2], ...). Tu tarea es agruparlo en NODOS: unidades argumentales completas que se leen de una sentada.
 
 REGLAS DE SEGMENTACIÓN
 - Cada nodo es un rango CONTIGUO de párrafos enteros. Nunca partas un párrafo. Indicá solo el número del párrafo donde empieza cada nodo; el nodo termina donde empieza el siguiente.
 - El primer nodo empieza en P1. Cubrí el fragmento completo, en orden, hasta el último párrafo.
-- Cortá por unidad conceptual, no por extensión: un nodo desarrolla una idea, distinción o paso argumental. Apuntá a 300–600 palabras. Si un argumento necesita más, puede superarlo; evitá nodos de menos de 200 palabras salvo que haya un cambio de capítulo.
+- Cortá por unidad conceptual, no por extensión: un nodo desarrolla una idea, distinción o paso argumental. Apuntá a {TARGET} palabras. Si un argumento necesita más, puede superarlo; evitá nodos de menos de {TOO_SHORT} palabras salvo que haya un cambio de capítulo.
 - El fragmento puede terminar a mitad de un argumento: segmentá igual hasta el final (el último nodo se revisa en la siguiente tanda).
 - Los párrafos que empiezan con "# " son títulos del libro. Un título abre un nodo nuevo; nunca cierres un nodo con un título.
 - Los párrafos que empiezan con "[nota]" son notas al pie: pertenecen al nodo donde aparecen. Nunca empieces un nodo con una nota.

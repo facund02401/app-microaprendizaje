@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { CLAUDE_MODEL, aiConfigured } from "@/lib/ai/claude";
+import { parseNodeSize } from "@/lib/node-size";
 import { getUser } from "@/lib/supabase/server";
 import { runDocumentAction, type Action } from "./pipeline";
 
@@ -42,7 +43,11 @@ export async function handleDocumentAction(
       ? { kind }
       : kind === "queue"
         ? { kind, add: intList(body.add), remove: intList(body.remove) }
-        : { kind, section: Number.isInteger(body.section) ? (body.section as number) : undefined };
+        : {
+          kind,
+          section: Number.isInteger(body.section) ? (body.section as number) : undefined,
+          nodeSize: parseNodeSize(user.user_metadata?.node_size),
+        };
 
   const result = await runDocumentAction(supabase, id, action);
   if (!result) return NextResponse.json({ error: "Documento no encontrado" }, { status: 404 });
