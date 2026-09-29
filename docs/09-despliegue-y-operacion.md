@@ -10,7 +10,7 @@
 | **App online** | https://nodos-seven.vercel.app | La dirección para entrar desde cualquier dispositivo. |
 | **Vercel**, proyecto `nodos` | cuenta de Vercel del dueño (junto a `consultapp`) | Publica la app. Plan gratis: admite hasta 200 proyectos. |
 | **Supabase**, proyecto `nodos` (São Paulo) | organización `facund0`, junto a `consultori0` | Base de datos, cuentas y archivos. Plan gratis: 2 proyectos activos. |
-| **Claude (Anthropic)** | falta crear la clave (paso 2) | Transcribe páginas escaneadas y divide los textos en nodos. |
+| **Claude (Anthropic)** | clave cargada en Vercel (paso 2) | Transcribe páginas escaneadas y divide los textos en nodos. |
 
 La app y la base están en São Paulo (región más cercana a Uruguay/Argentina), así carga rápido.
 
@@ -18,12 +18,12 @@ La app y la base están en São Paulo (región más cercana a Uruguay/Argentina)
 
 Estos pasos no los puede hacer Claude Code por seguridad: son configuraciones de tus cuentas.
 
-**Estado al 2026-09-29:**
+**Estado al 2026-09-29 (Fase 2 núcleo operativa):**
 
 | Paso | Estado |
 |---|---|
 | 1. Supabase sin confirmación de email | ✓ hecho (la cuenta quedó confirmada) |
-| 2. Clave de Claude en Vercel | ⚪ **pendiente: es lo único que falta** |
+| 2. Clave de Claude en Vercel | ✓ hecho (2026-09-29; probado por el dueño subiendo un texto, funcionó) |
 | 3. Crear tu cuenta en Nodos | ✓ hecho |
 | 4. Instalar en el celular | ⚪ cuando quieras |
 
