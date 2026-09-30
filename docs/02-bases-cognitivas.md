@@ -38,7 +38,7 @@
   - **Constructivo:** generar contenido nuevo no presente en el material (autoexplicarse).
   - **Interactivo:** diálogo con pares/tutor.
 - El **Efecto de Autoexplicación** (Chi): generar explicaciones propias produce aprendizajes más profundos que la recepción pasiva.
-- **Regla derivada:** completar un nodo exige redactar o dictar una autoexplicación (fase constructiva mínima obligatoria).
+- **Regla derivada:** cada nodo ofrece una caja para redactar o dictar una autoexplicación (fase constructiva). **Ajuste 2026-09-29 (decisión del dueño):** es una invitación, no un requisito: las flechas para avanzar van antes del glosario y de la caja de notas, y nunca hace falta pasar por ellos. Exigirla contradecía el principio antipunitivo (§4.3) y la lectura sin candado.
 
 ### 2.2 Práctica de Recuperación y Prompts de Transferencia
 
@@ -104,6 +104,6 @@ Principios detallados:
 ## 6. Líneas de Acción Recomendadas (Síntesis Operativa)
 
 1. Configurar prompts de ingesta para **chunking conceptual**: nodos de 300–600 palabras por integridad argumental; máx. 3 términos de glosario por sesión.
-2. Exigir la **fase constructiva**: autoexplicación obligatoria para completar el nodo; devolución de IA máx. 150 palabras.
+2. Ofrecer la **fase constructiva**: caja de autoexplicación opcional al pie del nodo (no bloquea el avance); devolución de IA máx. 150 palabras.
 3. Adoptar **filosofía antipunitiva**: cero indicadores de retraso, racha perdida o deuda de lectura; recálculo transparente del itinerario.
 4. Aplicar **ergonomía visual**: serif 18px, columna 60–70 caracteres, glosarios flotantes integrados (erradicar atención dividida).

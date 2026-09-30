@@ -31,7 +31,7 @@
 1. **Chunking conceptual, nunca por páginas/palabras**: nodos con unidad argumental completa. Default 300–600 palabras; el usuario puede elegir Medios (600–1000) o Largos (1000–1500) en la Biblioteca (`lib/node-size.ts`, guardado en `user_metadata.node_size`; decisión del dueño 2026-09-29). Aplica solo a lo que se prepare después.
 2. **Andamiaje, no simplificación**: el texto del autor va intacto, sin resúmenes.
 3. **Diseño antipunitivo**: prohibido contadores de deuda, rachas perdidas, alertas rojas o acumuladores de pendientes. El mapa se recalcula sin sanción.
-4. **Autoexplicación obligatoria** para completar un nodo; feedback de IA ≤150 palabras, tono colega, NO evaluativo (sin notas/puntajes).
+4. **Autoexplicación invitada, no exigida** (decisión del dueño 2026-09-29: avanzar de nodo nunca pasa por el glosario ni por la caja de notas; van después de las flechas y son opcionales, igual que la lectura completa sin candado del punto 6); feedback de IA ≤150 palabras, tono colega, NO evaluativo (sin notas/puntajes).
 5. **Glosario flotante in situ** (tooltips), máximo 3 términos por sesión.
 6. **Lectura completa siempre accesible**: nunca hay candado. Las secciones ya trabajadas se resaltan en tono tenue como señal de familiaridad; el hito de completar el libro es informativo/celebratorio, no una condición de acceso (decisión 2026-09-08: el hard-lock original iba contra el punto 3 de esta misma lista).
 
