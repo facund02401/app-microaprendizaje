@@ -49,7 +49,7 @@
 
 ### ✅ T4 y T5 hechas (2026-09-29)
 
-`/api/concept` (Claude Haiku 4.5, tope 60/hora por usuario, modelo cambiable con `CLAUDE_CONCEPT_MODEL`). La tarjeta ofrece "Explicar con IA" (manual) y el Banco tiene "Explicar ahora" para los pendientes. Ya no hay texto "(Demo)". Sin probar aún con la clave real en producción.
+`/api/concept` (Claude Haiku 4.5, tope 60/hora por usuario, modelo cambiable con `CLAUDE_CONCEPT_MODEL`). La tarjeta ofrece "Explicar con IA" (manual) y el Banco tiene "Explicar ahora" para los pendientes. Ya no hay texto "(Demo)". Probado por el dueño en producción el 2026-09-29 (también "Guardar y explicar ahora" en la tarjeta).
 
 ### ⚪ (Histórico) Especificación de T4/T5
 
