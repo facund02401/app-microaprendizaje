@@ -285,17 +285,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
         >
           <div className="bg-editor min-h-full px-6 py-10 sm:px-10 sm:py-16">
             <ReaderTextDisplay node={node} book={book} chapter={chapter} />
-            <NodeGlossarySection node={node} book={book} chapter={chapter} />
-            <ReflectionBox
-              key={nodeKey(node)}
-              node={node}
-              documentId={book.documentId}
-              cloud={cloud}
-              initial={responses[nodeKey(node)] ?? EMPTY_RESPONSE}
-              onSaved={(v) => setResponses((prev) => ({ ...prev, [nodeKey(node)]: v }))}
-            />
-
-            {/* Navegación inferior */}
+{/* Avanzar va primero: glosario y notas son opcionales, no un paso obligado */}
             <nav
               aria-label="Nodos vecinos"
               className="mx-auto mt-12 flex max-w-[42rem] items-center justify-between font-mono text-[13px] sm:text-[12px]"
@@ -337,6 +327,16 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
                 atEnd={current === total - 1}
               />
             )}
+
+            <NodeGlossarySection node={node} book={book} chapter={chapter} />
+            <ReflectionBox
+              key={nodeKey(node)}
+              node={node}
+              documentId={book.documentId}
+              cloud={cloud}
+              initial={responses[nodeKey(node)] ?? EMPTY_RESPONSE}
+              onSaved={(v) => setResponses((prev) => ({ ...prev, [nodeKey(node)]: v }))}
+            />
           </div>
         </main>
       </div>
