@@ -46,6 +46,7 @@
 - **Adaptación móvil (desde v1.1):** escritorio sigue siendo la experiencia primaria, pero <768px el explorador es cajón flotante (nace cerrado, cierra con toque fuera/Esc/al elegir nodo), el glosario abre por toque (Popover híbrido, ver APRENDIZAJES), botones con área táctil ≥40px y altura `100dvh`. Punto de corte: `md` de Tailwind.
 - **Lectura ajustable (v1.1):** control "Aa" en header, presets 16–24px (default 19) vía variable CSS `--reading-fs` aplicada pre-paint (sin flash). Interlineado/ancho en ch se adaptan solos.
 - **Glosario y banco (v1.1):** tooltips flotantes mantienen límite de 3/sesión; la sección "Glosario del nodo" es estática y no cuenta en ese límite. El Banco de conceptos persiste en localStorage (`nodos-concept-bank`) hasta migrar a Supabase en Fase 2.
+- **Subrayado (2026-09-29, docs/10 D17):** selección → marcador o ⊕. Un solo color, sin contadores; se dibuja con la CSS Custom Highlight API (no toca el texto del autor); se exporta dentro de cada nodo en el PDF. Código: `lib/highlights.ts`, `lib/highlight-dom.ts`, `components/reader/HighlightLayer.tsx`.
 - **Banco de conceptos v1.2:** selección de texto → ⊕ flotante → guarda con estado `explained`/`pending`; pendientes muestran etiqueta gris neutra y se explican con IA vía botón manual "Explicar ahora" (decisión del dueño). Especificación completa en `TODO.md`.
 
 ## Flujo de trabajo esperado

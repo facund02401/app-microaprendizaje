@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Plus, X } from "lucide-react";
+import { Highlighter, Plus, X } from "lucide-react";
 import {
   NO_EXPLANATION_YET,
   fetchExplanation,
@@ -9,7 +9,9 @@ import {
   setExplanation,
   saveFromSelection,
 } from "@/lib/concept-bank";
-import type { Book, Chapter, ConceptNode } from "@/types";
+import { highlightsSupported, spansFromRange } from "@/lib/highlight-dom";
+import { addHighlights, type HighlightSpan } from "@/lib/highlights";
+import { nodeKey, type Book, type Chapter, type ConceptNode } from "@/types";
 
 interface Props {
   node: ConceptNode;
@@ -22,11 +24,16 @@ type Phase = "idle" | "choosing" | "saved" | "exists";
 interface SelectionInfo {
   term: string;
   paragraph: string;
+  /** Tramos para subrayar (uno por párrafo). */
+  spans: HighlightSpan[];
+  /** El banco de conceptos es para términos cortos; subrayar admite pasajes largos. */
+  canSave: boolean;
   x: number;
   y: number;
 }
 
 const MAX_CHARS = 300;
+const MAX_HIGHLIGHT_CHARS = 5000;
 const COARSE = "(pointer: coarse)";
 
 function subscribeCoarse(cb: () => void) {
@@ -119,8 +126,12 @@ export function SelectionSave({ node, book, chapter }: Props) {
         return;
       }
       const text = s.toString().trim().replace(/\s+/g, " ");
+      const canHighlight = highlightsSupported();
+      const inArticle =
+        article.contains(s.anchorNode) && article.contains(s.focusNode);
+      const canSave = text.length <= MAX_CHARS;
       const rect =
-        text && text.length <= MAX_CHARS && article.contains(s.anchorNode)
+        text && inArticle && (canSave || (canHighlight && text.length <= MAX_HIGHLIGHT_CHARS))
           ? s.getRangeAt(0).getBoundingClientRect()
           : null;
 
@@ -140,6 +151,11 @@ export function SelectionSave({ node, book, chapter }: Props) {
         }
         paragraphEl = paragraphEl.parentNode;
       }
+      const spans = canHighlight ? spansFromRange(s.getRangeAt(0), article) : [];
+      if (!canSave && spans.length === 0) {
+        if (phaseRef.current === "idle") setSel(null);
+        return;
+      }
       const top = rect.top > 72 ? rect.top - 52 : rect.bottom + 12;
       const left = Math.min(
         Math.max(8, rect.left + rect.width / 2 - 20),
@@ -150,7 +166,7 @@ export function SelectionSave({ node, book, chapter }: Props) {
           setAiDef(null);
           setAiState("idle");
         }
-        return { term: text, paragraph, x: left, y: top };
+        return { term: text, paragraph, spans, canSave, x: left, y: top };
       });
       setPhase("idle");
     }
@@ -196,6 +212,21 @@ export function SelectionSave({ node, book, chapter }: Props) {
     }
   }
 
+  function handleHighlight() {
+    if (!sel || sel.spans.length === 0) return;
+    addHighlights(
+      {
+        documentId: book.documentId,
+        nodeKey: nodeKey(node),
+        chapterTitle: chapter.title,
+        nodeIndex: node.orderIndex,
+      },
+      sel.spans
+    );
+    window.getSelection()?.removeAllRanges();
+    clear();
+  }
+
   function handleSave(explain = false) {
     if (!sel) return;
     const glossHit = matchGlossary(sel.term, node);
@@ -229,26 +260,48 @@ export function SelectionSave({ node, book, chapter }: Props) {
   return (
     <>
       {phase === "idle" && (
-        <button
+        <div
           style={
             touch
               ? {
                   right: 16,
                   bottom: "calc(env(safe-area-inset-bottom, 0px) + 4.5rem)",
                 }
-              : { left: sel.x, top: sel.y }
+              : {
+                  left: Math.max(8, Math.min(sel.x - (sel.canSave ? 24 : 0), window.innerWidth - 104)),
+                  top: sel.y,
+                }
           }
-          onMouseDown={(e) => e.preventDefault()}
-          // En táctil, tocar el botón puede colapsar la selección antes del
-          // click y hacerlo desaparecer: se abre ya en pointerdown.
-          onPointerDown={() => touch && setPhase("choosing")}
-          onClick={() => setPhase("choosing")}
-          aria-label={`Agregar "${sel.term}" al banco de conceptos`}
-          title="Agregar al banco de conceptos"
-          className="fixed z-40 inline-flex size-10 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+          className="fixed z-40 flex gap-2"
         >
-          <Plus aria-hidden="true" className="size-5" />
-        </button>
+          {sel.spans.length > 0 && (
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              // En táctil la selección se colapsa al tocar: se actúa en pointerdown.
+              onPointerDown={() => touch && handleHighlight()}
+              onClick={() => handleHighlight()}
+              aria-label="Subrayar el texto seleccionado"
+              title="Subrayar"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <Highlighter aria-hidden="true" className="size-5" />
+            </button>
+          )}
+          {sel.canSave && (
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              // En táctil, tocar el botón puede colapsar la selección antes del
+              // click y hacerlo desaparecer: se abre ya en pointerdown.
+              onPointerDown={() => touch && setPhase("choosing")}
+              onClick={() => setPhase("choosing")}
+              aria-label={`Agregar "${sel.term}" al banco de conceptos`}
+              title="Agregar al banco de conceptos"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <Plus aria-hidden="true" className="size-5" />
+            </button>
+          )}
+        </div>
       )}
 
       {phase !== "idle" && (

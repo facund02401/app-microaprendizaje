@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ExportLink } from "@/components/reader/ExportLink";
+import { purgeDocumentHighlights } from "@/lib/highlights";
 import { createClient } from "@/lib/supabase/client";
 import { DOCUMENTS_BUCKET } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 
 /**
  * Quita un texto de la biblioteca (docs/10 D16). Es definitivo: se borran el texto,
- * los nodos y las respuestas/notas de ese documento. Los conceptos del banco se conservan.
+ * los nodos y las respuestas, notas y subrayados de ese documento. Los conceptos del banco se conservan.
  * Antes de confirmar se ofrece bajar los apuntes en PDF.
  */
 export function DeleteDocument({
@@ -40,6 +41,7 @@ export function DeleteDocument({
       setError("No se pudo eliminar. Probá de nuevo en un momento.");
       return;
     }
+    await purgeDocumentHighlights(documentId);
     // El archivo original es secundario: si falla, el texto ya no figura en la biblioteca.
     await supabase.storage.from(DOCUMENTS_BUCKET).remove([filePath]);
     if (redirectTo) router.push(redirectTo);
@@ -64,7 +66,7 @@ export function DeleteDocument({
   return (
     <div role="alertdialog" aria-label="Confirmar eliminación" className="space-y-3 font-sans text-[13.5px] leading-relaxed">
       <p>
-        Se borran el texto, sus nodos y tus respuestas y notas de este documento. Los conceptos que guardaste en el
+        Se borran el texto, sus nodos y tus respuestas, notas y subrayados de este documento. Los conceptos que guardaste en el
         banco se conservan. No se puede deshacer.
       </p>
       <div className="flex flex-wrap items-center gap-3">

@@ -97,3 +97,12 @@
 - **Negocio:** cero costo; no hay papelera.
 - **Decisión:** eliminación definitiva con aviso + PDF previo (`components/library/DeleteDocument.tsx`). Si falla la base, se muestra el error y no se dice "eliminado".
 - **Revertir / alternativa:** si el dueño prefiere "archivar" (ocultar sin borrar), agregar columna `archived_at` y filtro en el dashboard.
+
+### D17 — Subrayar con resaltador *(pedido del dueño, 2026-09-29)*
+- **Usuario:** "Además de marcar cosas en el banco de conceptos, poder subrayar con resaltador; que salga en la exportación. Sería muy útil para estudiar."
+- **Diseño:** al seleccionar texto aparecen dos botones: marcador (subrayar) y ⊕ (banco). **Un solo color**, tipo marcador físico y sin neón (`--highlight-bg` en `app/globals.css`, un tono por tema). Tocar un pasaje subrayado ofrece "Quitar subrayado" (deshacer sin culpa). Sin contadores ni resúmenes de "cuánto subrayaste" (regla 3). Se distingue del tono tenue de "secciones ya trabajadas". Subrayar admite pasajes largos y que cruzan párrafos; el banco sigue limitado a términos cortos (300 caracteres).
+- **Técnica:** cada subrayado se ancla a nodo + párrafo + posición de inicio/fin (el texto del autor no cambia) y guarda la cita para verificarla al dibujar. Se dibuja con la CSS Custom Highlight API: **no modifica el texto del autor**. Si el navegador no la soporta (Chrome <105, Safari <17.2, Firefox <140) el botón de subrayar no aparece. Los que se pisan se unen en uno. Se guarda en el dispositivo y se sincroniza con la cuenta (tabla `highlights`, migración `20260929_005_subrayados.sql`, mismo patrón que el banco). Al eliminar un documento se borran sus subrayados.
+- **Exportación (recomendación del directorio):** en el PDF, dentro de cada nodo, después de la respuesta y las notas: "Pasajes subrayados" con la cita literal sobre marcador amarillo suave. El banco de conceptos sigue al final.
+- **Negocio:** cero costo (no usa IA).
+- **Pendiente (fase 2, solo si el dueño lo pide):** nota corta atada a un subrayado y vista "mis subrayados" del libro.
+- **Revertir:** quitar `HighlightLayer` de `ReaderView` y el botón de `SelectionSave`; la tabla puede quedar sin uso.

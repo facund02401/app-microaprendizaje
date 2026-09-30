@@ -206,3 +206,20 @@
     text-decoration-thickness: 1.5px;
   }
 }
+
+/* Subrayado de lectura (docs/10 D17): un solo color, tipo marcador físico, sin neón.
+   Se dibuja con la CSS Custom Highlight API (lib/highlight-dom.ts). */
+:root {
+  --highlight-bg: #f6df8b;
+}
+.dark,
+[data-theme="dark"] {
+  --highlight-bg: rgba(250, 205, 100, 0.32);
+}
+[data-theme="sepia"] {
+  --highlight-bg: #f0d58a;
+}
+::highlight(nodos-hl) {
+  background-color: var(--highlight-bg);
+  color: inherit;
+}

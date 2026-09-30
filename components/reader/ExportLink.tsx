@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { FileDown } from "lucide-react";
 import { syncBank } from "@/lib/concept-bank";
+import { syncHighlights } from "@/lib/highlights";
 import { cn } from "@/lib/utils";
 
 /**
- * Descarga el PDF de apuntes (respuestas, notas y banco de conceptos).
- * Antes sube el banco del dispositivo para que el PDF salga completo.
+ * Descarga el PDF de apuntes (respuestas, notas, subrayados y banco de conceptos).
+ * Antes sube el banco y los subrayados del dispositivo para que el PDF salga completo.
  */
 export function ExportLink({
   documentId,
@@ -31,7 +32,7 @@ export function ExportLink({
         e.preventDefault();
         if (busy) return;
         setBusy(true);
-        await syncBank();
+        await Promise.all([syncBank(), syncHighlights()]);
         setBusy(false);
         const a = document.createElement("a");
         a.href = href;

@@ -16,7 +16,7 @@ export async function collectNotes(
   documentId: string,
   chapterId: string | null
 ): Promise<NotesExport | null> {
-  const [{ data: doc }, { data: chapters }, { data: nodes }, { data: responses }, { data: concepts }] =
+  const [{ data: doc }, { data: chapters }, { data: nodes }, { data: responses }, { data: concepts }, { data: marks }] =
     await Promise.all([
       sb.from("documents").select("id, title, author").eq("id", documentId).maybeSingle(),
       sb.from("chapters").select("id, title, start_position").eq("document_id", documentId).order("start_position"),
@@ -27,6 +27,12 @@ export async function collectNotes(
         .order("start_position"),
       sb.from("node_responses").select("node_id, answer, note").eq("document_id", documentId),
       sb.from("concept_bank").select("*").eq("document_id", documentId).order("saved_at"),
+      sb
+        .from("highlights")
+        .select("node_id, paragraph, start_pos, text")
+        .eq("document_id", documentId)
+        .order("paragraph")
+        .order("start_pos"),
     ]);
   if (!doc) return null;
 
@@ -37,6 +43,10 @@ export async function collectNotes(
   const byNode = new Map(
     (responses ?? []).map((r) => [r.node_id as string, { answer: r.answer as string, note: r.note as string }])
   );
+  const marksByNode = new Map<string, string[]>();
+  for (const m of (marks ?? []) as { node_id: string; text: string }[]) {
+    marksByNode.set(m.node_id, [...(marksByNode.get(m.node_id) ?? []), m.text.replace(/[⟦⟧]/g, "")]);
+  }
   const numbered = ((nodes ?? []) as NodeRow[]).map((n, i) => ({ ...n, number: i + 1 }));
 
   const exportChapters: ExportChapter[] = chapterList
@@ -51,6 +61,7 @@ export async function collectNotes(
           prompt: n.reflection_prompt,
           answer: byNode.get(n.id)?.answer ?? "",
           note: byNode.get(n.id)?.note ?? "",
+          highlights: marksByNode.get(n.id) ?? [],
         })),
     }));
 

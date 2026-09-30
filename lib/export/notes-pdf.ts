@@ -10,6 +10,8 @@ export interface ExportNode {
   prompt: string;
   answer: string;
   note: string;
+  /** Pasajes subrayados, en orden de aparición en el nodo. */
+  highlights: string[];
 }
 
 export interface ExportChapter {
@@ -42,6 +44,8 @@ const MARGIN_BOTTOM = 72;
 const TEXT = rgb(0.13, 0.13, 0.14);
 const MUTED = rgb(0.42, 0.42, 0.45);
 const RULE = rgb(0.82, 0.82, 0.84);
+// Marcador amarillo suave, como el subrayado del lector.
+const MARKER = rgb(1, 0.92, 0.55);
 
 const FONT_DIR = path.join(process.cwd(), "lib/export/fonts");
 
@@ -85,7 +89,7 @@ class Writer {
 
   text(
     content: string,
-    opts: { font?: PDFFont; size?: number; color?: ReturnType<typeof rgb>; indent?: number; leading?: number } = {}
+    opts: { font?: PDFFont; size?: number; color?: ReturnType<typeof rgb>; indent?: number; leading?: number; marker?: boolean } = {}
   ) {
     const font = opts.font ?? this.fonts.regular;
     const size = opts.size ?? 11;
@@ -103,13 +107,13 @@ class Writer {
       for (const word of words) {
         const candidate = line ? `${line} ${word}` : word;
         if (font.widthOfTextAtSize(candidate, size) > maxWidth && line) {
-          this.drawLine(line, font, size, leading, indent, opts.color);
+          this.drawLine(line, font, size, leading, indent, opts.color, opts.marker);
           line = word;
         } else {
           line = candidate;
         }
       }
-      if (line) this.drawLine(line, font, size, leading, indent, opts.color);
+      if (line) this.drawLine(line, font, size, leading, indent, opts.color, opts.marker);
     }
   }
 
@@ -119,10 +123,20 @@ class Writer {
     size: number,
     leading: number,
     indent: number,
-    color = TEXT
+    color = TEXT,
+    marker = false
   ) {
     this.ensure(leading);
     this.y -= leading;
+    if (marker) {
+      this.page.drawRectangle({
+        x: MARGIN_X + indent - 1.5,
+        y: this.y + (leading - size) / 2 - 2,
+        width: font.widthOfTextAtSize(line, size) + 3,
+        height: size + 3.5,
+        color: MARKER,
+      });
+    }
     this.page.drawText(line, { x: MARGIN_X + indent, y: this.y + (leading - size) / 2, size, font, color });
   }
 
@@ -177,12 +191,12 @@ export async function buildNotesPdf(data: NotesExport): Promise<Uint8Array> {
   w.rule();
 
   const withContent = data.chapters
-    .map((c) => ({ ...c, nodes: c.nodes.filter((n) => n.answer.trim() || n.note.trim()) }))
+    .map((c) => ({ ...c, nodes: c.nodes.filter((n) => n.answer.trim() || n.note.trim() || n.highlights.length) }))
     .filter((c) => c.nodes.length);
 
   if (!withContent.length) {
     w.space(10);
-    w.text("Todavía no hay respuestas ni notas en esta parte.", { font: italic, color: MUTED });
+    w.text("Todavía no hay respuestas, notas ni subrayados en esta parte.", { font: italic, color: MUTED });
   }
 
   for (const chapter of withContent) {
@@ -207,6 +221,14 @@ export async function buildNotesPdf(data: NotesExport): Promise<Uint8Array> {
         w.space(4);
         w.text("Mis notas", { size: 8.5, color: MUTED });
         w.text(node.note.trim(), { size: 11 });
+      }
+      if (node.highlights.length) {
+        w.space(4);
+        w.text("Pasajes subrayados", { size: 8.5, color: MUTED });
+        for (const passage of node.highlights) {
+          w.space(2);
+          w.text(passage, { size: 10.5, indent: 12, marker: true });
+        }
       }
     }
   }

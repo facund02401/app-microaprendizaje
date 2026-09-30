@@ -21,6 +21,7 @@ import { NodeNavigation } from "@/components/reader/NodeNavigation";
 import { ReaderTextDisplay } from "@/components/reader/ReaderTextDisplay";
 import { ReflectionBox } from "@/components/reader/ReflectionBox";
 import { SelectionSave } from "@/components/reader/SelectionSave";
+import { HighlightLayer } from "@/components/reader/HighlightLayer";
 import { Breadcrumbs } from "@/components/shell/Breadcrumbs";
 import { FontToggle } from "@/components/shell/FontToggle";
 import { StatusBar } from "@/components/shell/StatusBar";
@@ -30,6 +31,7 @@ import { flatNodes, nodeKey } from "@/types";
 import { EMPTY_RESPONSE } from "@/types";
 import type { Book, NodeResponse, SectionRow } from "@/types";
 import { syncBank } from "@/lib/concept-bank";
+import { syncHighlights } from "@/lib/highlights";
 import { ExportLink } from "@/components/reader/ExportLink";
 
 interface Props {
@@ -61,7 +63,10 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
   // Trae al dispositivo el banco de conceptos guardado en la cuenta.
   useEffect(() => {
     if (!cloud) return;
-    const t = setTimeout(() => void syncBank(), 0);
+    const t = setTimeout(() => {
+      void syncBank();
+      void syncHighlights();
+    }, 0);
     return () => clearTimeout(t);
   }, [cloud]);
   const nodes = useMemo(() => flatNodes(book), [book]);
@@ -345,6 +350,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
 
       {/* Prototipo v1.2: selección de texto → ⊕ → banco (ver TODO.md) */}
       <SelectionSave node={node} book={book} chapter={chapter} />
+      <HighlightLayer node={node} documentId={book.documentId} />
     </div>
   );
 }

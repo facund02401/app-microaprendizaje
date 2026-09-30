@@ -45,7 +45,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
   return node.excerptParagraphs.map((paragraph, pIndex) => {
     if (paragraph.startsWith(HEADING_PREFIX)) {
       return (
-        <h3 key={pIndex} className="pt-2 text-[1.15em] leading-snug font-bold">
+        <h3 key={pIndex} data-p={pIndex} className="pt-2 text-[1.15em] leading-snug font-bold">
           {paragraph.slice(HEADING_PREFIX.length)}
         </h3>
       );
@@ -54,6 +54,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
       return (
         <p
           key={pIndex}
+          data-p={pIndex}
           className="border-l-2 border-border pl-3 text-left text-[0.85em] leading-relaxed text-muted-foreground"
         >
           {paragraph.slice(NOTE_PREFIX.length)}
@@ -111,6 +112,10 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
       parts.push(<Fragment key={key++}>{remaining}</Fragment>);
     }
 
-    return <p key={pIndex}>{parts}</p>;
+    return (
+      <p key={pIndex} data-p={pIndex}>
+        {parts}
+      </p>
+    );
   });
 }

@@ -66,6 +66,11 @@ Cuando T4 esté lista, los conceptos `pendiente` que tengan la explicación demo
 
 ---
 
+## 1b. Subrayado con resaltador (2026-09-29) — hecho, falta probar en producción
+- Implementado según docs/10 D17 (un solo color, exportación dentro de cada nodo). Verificado en local con el texto de prueba: subrayar, unir solapados, cruzar párrafos, quitar, persistir al recargar; lint y build sin errores. Migración aplicada en Supabase.
+- **Falta probar:** en producción (ya con cuenta): subrayar en un libro subido, ver que aparece en el celular, y bajar el PDF para ver "Pasajes subrayados". También probar el toque largo en iPhone/Android (el botón va abajo a la derecha, junto al ⊕).
+- **Fase 2 (solo si lo pedís):** nota corta por subrayado y vista "mis subrayados" del libro.
+
 ## 2. Cuentas externas (para T4/T5) — desde cero
 
 1. Crear cuenta en **Anthropic Console** (console.anthropic.com) con email del dueño.
