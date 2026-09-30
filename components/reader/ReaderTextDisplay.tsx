@@ -30,7 +30,7 @@ export function ReaderTextDisplay({
         Nodo {node.orderIndex}
       </h1>
       <h2 className="text-[1.5em] leading-snug font-bold mb-10">{node.title}</h2>
-      <div className="space-y-[1.5em] [&_p]:indent-0">
+      <div className="space-y-[1.5em] [&_p]:indent-0 [&_p]:text-justify [&_p]:hyphens-auto">
         {renderParagraphs(node, book, chapter)}
       </div>
     </article>
@@ -54,7 +54,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
       return (
         <p
           key={pIndex}
-          className="border-l-2 border-border pl-3 text-[0.85em] leading-relaxed text-muted-foreground"
+          className="border-l-2 border-border pl-3 text-left text-[0.85em] leading-relaxed text-muted-foreground"
         >
           {paragraph.slice(NOTE_PREFIX.length)}
         </p>

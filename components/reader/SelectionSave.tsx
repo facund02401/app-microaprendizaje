@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Plus, X } from "lucide-react";
-import { saveFromSelection } from "@/lib/concept-bank";
+import {
+  NO_EXPLANATION_YET,
+  fetchExplanation,
+  saveFromSelection,
+} from "@/lib/concept-bank";
 import type { Book, Chapter, ConceptNode } from "@/types";
 
 interface Props {
@@ -27,11 +31,6 @@ function subscribeCoarse(cb: () => void) {
   const mq = window.matchMedia(COARSE);
   mq.addEventListener("change", cb);
   return () => mq.removeEventListener("change", cb);
-}
-
-/** Explicación provisoria hasta conectar la IA en Fase 2 (ver TODO.md). */
-function demoExplanation(term: string): string {
-  return `(Demo) Cuando conectemos la IA (Fase 2), acá va a aparecer una explicación breve de «${term}» en relación con el párrafo que estás leyendo. El concepto queda guardado como pendiente.`;
 }
 
 /** Coincidencia flexible contra el glosario del nodo (más larga primero). */
@@ -67,6 +66,10 @@ export function SelectionSave({ node, book, chapter }: Props) {
   );
   // Espejo para leer la fase dentro de listeners sin resuscribirlos.
   const phaseRef = useRef<Phase>("idle");
+  // Explicación pedida a la IA desde la tarjeta (solo si el lector la pide).
+  const [aiDef, setAiDef] = useState<string | null>(null);
+  const [aiState, setAiState] = useState<"idle" | "loading" | "error">("idle");
+  const [aiError, setAiError] = useState("");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setPhase = useCallback((p: Phase) => {
@@ -77,6 +80,8 @@ export function SelectionSave({ node, book, chapter }: Props) {
   const clear = useCallback(() => {
     if (debounce.current) clearTimeout(debounce.current);
     setSel(null);
+    setAiDef(null);
+    setAiState("idle");
     setPhase("idle");
   }, [setPhase]);
 
@@ -118,7 +123,13 @@ export function SelectionSave({ node, book, chapter }: Props) {
         Math.max(8, rect.left + rect.width / 2 - 20),
         window.innerWidth - 56
       );
-      setSel({ term: text, paragraph, x: left, y: top });
+      setSel((prev) => {
+        if (prev?.term !== text) {
+          setAiDef(null);
+          setAiState("idle");
+        }
+        return { term: text, paragraph, x: left, y: top };
+      });
       setPhase("idle");
     }
 
@@ -143,14 +154,33 @@ export function SelectionSave({ node, book, chapter }: Props) {
     };
   }, [clear, setPhase]);
 
+  async function handleExplain() {
+    if (!sel) return;
+    setAiState("loading");
+    try {
+      const def = await fetchExplanation({
+        term: sel.term,
+        paragraph: sel.paragraph,
+        book: book.title,
+        chapter: chapter.title,
+      });
+      setAiDef(def);
+      setAiState("idle");
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "No se pudo explicar ahora.");
+      setAiState("error");
+    }
+  }
+
   function handleSave() {
     if (!sel) return;
     const glossHit = matchGlossary(sel.term, node);
+    const definition = glossHit?.definition ?? aiDef;
     const ok = saveFromSelection({
       id: sel.term.toLowerCase(),
       term: sel.term,
-      definition: glossHit ? glossHit.definition : demoExplanation(sel.term),
-      status: glossHit ? "explained" : "pending",
+      definition: definition ?? NO_EXPLANATION_YET,
+      status: definition ? "explained" : "pending",
       documentId: book.documentId,
       contextParagraph: sel.paragraph,
       sourceBookTitle: book.title,
@@ -163,7 +193,8 @@ export function SelectionSave({ node, book, chapter }: Props) {
   if (!sel) return null;
 
   const glossHit = matchGlossary(sel.term, node);
-  const isPending = !glossHit;
+  const shownDef = glossHit?.definition ?? aiDef;
+  const isPending = !shownDef;
 
   return (
     <>
@@ -227,14 +258,28 @@ export function SelectionSave({ node, book, chapter }: Props) {
           </div>
 
           <p className="mt-2 font-sans text-[13px] leading-relaxed text-muted-foreground">
-            {glossHit ? glossHit.definition : demoExplanation(sel.term)}
+            {shownDef ??
+              (aiState === "loading"
+                ? "Pensando una explicación…"
+                : aiState === "error"
+                  ? aiError
+                  : "Sin explicación todavía. Podés pedirla ahora o guardarlo y explicarlo después desde el banco.")}
           </p>
           <p className="mt-2 font-mono text-[10.5px] text-muted-foreground/70">
-            {glossHit ? "del glosario del nodo · " : ""}
+            {glossHit ? "del glosario del nodo · " : aiDef ? "explicado con IA · " : ""}
             {chapter.title} · nodo {String(node.orderIndex).padStart(2, "0")}
           </p>
 
           <div className="mt-3">
+            {phase === "choosing" && !shownDef && (
+              <button
+                onClick={handleExplain}
+                disabled={aiState === "loading"}
+                className="mb-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-md border border-border px-3 font-sans text-[13px] font-medium hover:bg-muted disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                {aiState === "error" ? "Reintentar explicación" : "Explicar con IA"}
+              </button>
+            )}
             {phase === "choosing" && (
               <button
                 onClick={handleSave}

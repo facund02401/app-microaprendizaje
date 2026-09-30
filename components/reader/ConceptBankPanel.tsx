@@ -1,8 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { X } from "lucide-react";
 import {
+  NO_EXPLANATION_YET,
+  fetchExplanation,
+  setExplanation,
   getBankServerSnapshot,
   getBankSnapshot,
   removeFromBank,
@@ -14,7 +17,8 @@ import type { SavedConcept } from "@/types";
  * Panel del banco de conceptos personal (docs/01 §4, v1.2 T2):
  * jerarquía Libro → Capítulo → Nodo con encabezados monoespaciados tipo IDE,
  * ordenado por posición en el texto. Los conceptos pendientes muestran
- * etiqueta gris neutra hasta recibir explicación de IA (TODO.md T5).
+ * etiqueta gris neutra hasta que el lector pida la explicación de IA con el
+ * botón manual "Explicar ahora" (TODO.md T5).
  */
 
 interface NodeRow {
@@ -99,6 +103,39 @@ export function ConceptBankPanel() {
     getBankServerSnapshot
   );
 
+  const [running, setRunning] = useState(false);
+  const [summary, setSummary] = useState("");
+  const pending = bank.filter((c) => c.status === "pending");
+
+  /** Explica uno por uno; los que fallan siguen pendientes, sin castigo. */
+  async function explainAll() {
+    setRunning(true);
+    setSummary("");
+    let ok = 0;
+    let failed = 0;
+    for (const c of pending) {
+      try {
+        setExplanation(
+          c.id,
+          await fetchExplanation({
+            term: c.term,
+            paragraph: c.contextParagraph,
+            book: c.sourceBookTitle,
+            chapter: c.sourceChapterTitle,
+          })
+        );
+        ok++;
+      } catch {
+        failed++;
+      }
+    }
+    setRunning(false);
+    setSummary(
+      `${ok} explicado${ok === 1 ? "" : "s"}` +
+        (failed ? `, ${failed} para reintentar` : "")
+    );
+  }
+
   if (bank.length === 0) {
     return (
       <p className="px-3 py-6 font-sans text-[12.5px] leading-relaxed text-muted-foreground/80 italic">
@@ -113,6 +150,25 @@ export function ConceptBankPanel() {
 
   return (
     <div className="space-y-3">
+      {(pending.length > 0 || summary) && (
+        <div className="flex items-center justify-between gap-2 rounded-md border border-border px-2.5 py-2 font-sans text-[12.5px] text-muted-foreground">
+          <span>
+            {running
+              ? "Explicando…"
+              : summary ||
+                `${pending.length} concepto${pending.length === 1 ? "" : "s"} sin explicar`}
+          </span>
+          {pending.length > 0 && (
+            <button
+              onClick={explainAll}
+              disabled={running}
+              className="min-h-[36px] shrink-0 rounded-md border border-border px-2.5 font-medium text-foreground hover:bg-muted disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-ring/60"
+            >
+              Explicar ahora
+            </button>
+          )}
+        </div>
+      )}
       {books.map((book) => (
         <details key={book.key} open className="group/book">
           <summary className="-mx-1 flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-sidebar-accent/50 [&::-webkit-details-marker]:hidden">
@@ -144,7 +200,7 @@ export function ConceptBankPanel() {
                           <div className="-mr-1 flex shrink-0 items-center gap-0.5">
                             {c.status === "pending" && (
                               <span
-                                title="Esperando explicación (botón Explicar ahora cuando esté la IA)"
+                                title="Sin explicación todavía (botón Explicar ahora)"
                                 className="rounded border border-border px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-wide text-muted-foreground"
                               >
                                 pendiente
@@ -167,7 +223,10 @@ export function ConceptBankPanel() {
                               : "mt-1 font-sans text-[13px] leading-relaxed text-muted-foreground"
                           }
                         >
-                          {c.definition}
+                          {c.status === "pending" ||
+                          c.definition.startsWith("(Demo)")
+                            ? NO_EXPLANATION_YET
+                            : c.definition}
                         </p>
                         <p className="mt-1.5 font-mono text-[10.5px] text-muted-foreground/70">
                           nodo {String(c.sourceNodeIndex).padStart(2, "0")}
