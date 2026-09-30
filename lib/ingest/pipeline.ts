@@ -18,7 +18,7 @@ import {
   positionOf,
   type SectionDraft,
 } from "./sections";
-import { countWords, plainTextToParagraphs, splitLongPaged } from "./text";
+import { countWords, plainTextToParagraphs, splitLongPaged, titleFromFileName } from "./text";
 
 export interface StepResult {
   document: DocumentRow;
@@ -195,7 +195,8 @@ async function analyze(sb: SupabaseClient, doc: DocumentRow): Promise<DocumentRo
     paragraph_count: items.length,
     seg_cursor: 0,
     total_nodes: 0,
-    ...(title ? { title } : {}),
+    // Un título editado a mano nunca se pisa: los metadatos solo reemplazan al nombre de archivo.
+    ...(title && doc.title === titleFromFileName(doc.file_name) ? { title } : {}),
     ...(author && !doc.author ? { author } : {}),
     lock_until: null,
   });

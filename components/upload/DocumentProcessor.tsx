@@ -7,6 +7,7 @@ import { DeleteDocument } from "@/components/library/DeleteDocument";
 import { SectionIndex } from "@/components/processing/SectionIndex";
 import { ExportLink } from "@/components/reader/ExportLink";
 import { isActive, sectionPercent, useProcessing } from "@/components/processing/useProcessing";
+import { titleFromFileName } from "@/lib/ingest/text";
 import { estimateSection, formatCostRange, formatMinutes, sumEstimates } from "@/lib/ingest/estimate";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,8 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
   const [selected, setSelected] = useState(() => initialSelection(initialSections));
   const [analyzing, setAnalyzing] = useState(initial.status === "uploaded");
   const [justReady, setJustReady] = useState<SectionRow | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [metaNote, setMetaNote] = useState<string | null>(null);
 
   // Al abrir: leer el archivo nuevo (gratis).
   useEffect(() => {
@@ -41,6 +44,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
       const r = await p.analyze();
       if (r.sections) setSelected(initialSelection(r.sections));
       setAnalyzing(false);
+      if (aiReady) void suggestMeta(true);
     }, 0);
     return () => clearTimeout(t);
     // Solo al montar.
@@ -105,6 +109,35 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
     router.refresh();
   }
 
+  /** Pide a Claude título y autor. En modo automático solo completa lo que sigue con el nombre del archivo. */
+  async function suggestMeta(auto = false) {
+    setSuggesting(true);
+    setMetaNote(null);
+    try {
+      const supabase = createClient();
+      const { data: cur } = await supabase.from("documents").select("title, author, file_name").eq("id", doc.id).single();
+      if (auto && cur && (cur.title !== titleFromFileName(cur.file_name) || cur.author)) return;
+      const res = await fetch(`/api/documents/${doc.id}/suggest`, { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { title?: string; author?: string; error?: string };
+      if (!res.ok || !body.title) {
+        if (!auto) setMetaNote(body.error ?? "No se pudo sugerir ahora. Escribilo a mano.");
+        return;
+      }
+      const { error } = await supabase
+        .from("documents")
+        .update({ title: body.title, ...(body.author ? { author: body.author } : {}) })
+        .eq("id", doc.id);
+      if (error) {
+        if (!auto) setMetaNote("No se pudo guardar la sugerencia. Probá de nuevo.");
+        return;
+      }
+      setMetaNote("Sugerido por IA a partir del comienzo del texto. Corregilo si no es así.");
+      router.refresh();
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
   const single = sections.length === 1;
   const hasIndex = sections.length > 1 && !analyzing;
   const singleEstimate = single ? estimateSection(model, sections[0]) : null;
@@ -119,6 +152,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
         <label className="block">
           <span className="sr-only">Título</span>
           <textarea
+            key={doc.title}
             defaultValue={doc.title}
             rows={1}
             onBlur={(e) => saveField("title", e.target.value.replace(/\s*\n\s*/g, " "))}
@@ -133,12 +167,32 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
           />
         </label>
         <input
+          key={doc.author ?? ""}
           defaultValue={doc.author ?? ""}
           placeholder="Autor (opcional)"
           onBlur={(e) => saveField("author", e.target.value)}
           aria-label="Autor"
           className="w-full rounded-md border border-transparent bg-transparent px-1 py-1 font-sans text-[15px] text-muted-foreground placeholder:text-muted-foreground/60 hover:border-border focus-visible:border-input focus-visible:outline-2 focus-visible:outline-ring/60"
         />
+        {!analyzing && doc.status !== "uploaded" && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
+            {aiReady && (
+              <button
+                type="button"
+                onClick={() => void suggestMeta()}
+                disabled={suggesting}
+                className="min-h-10 font-sans text-[13px] text-muted-foreground hover:text-foreground disabled:opacity-60"
+              >
+                {suggesting ? "Buscando título y autor…" : "Sugerir título y autor con IA"}
+              </button>
+            )}
+            {metaNote && (
+              <p role="status" className="font-sans text-[12.5px] text-muted-foreground">
+                {metaNote}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {analyzing && (

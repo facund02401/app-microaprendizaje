@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EditDocumentInfo } from "@/components/library/EditDocumentInfo";
 import { DeleteDocument } from "@/components/library/DeleteDocument";
 import { statusLabel, type SectionCounts } from "@/lib/documents";
 import { cn } from "@/lib/utils";
@@ -34,8 +35,9 @@ export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: Section
             {statusLabel(doc, counts)}
           </span>
         </div>
+        {doc.author && <p className="mb-0.5 font-sans text-[14px]">{doc.author}</p>}
         <p className="font-sans text-[13px] text-muted-foreground">
-          {[doc.author, TYPE_LABEL[doc.file_type], doc.page_count ? `${doc.page_count} págs.` : null]
+          {[TYPE_LABEL[doc.file_type], doc.page_count ? `${doc.page_count} págs.` : null]
             .filter(Boolean)
             .join(" · ")}
         </p>
@@ -51,6 +53,7 @@ export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: Section
         ) : (
           <span />
         )}
+        <EditDocumentInfo documentId={doc.id} title={doc.title} author={doc.author} className="text-[11.5px]" />
         <DeleteDocument documentId={doc.id} filePath={doc.file_path} disabled={processing} className="text-[11.5px]" />
       </div>
     </div>
