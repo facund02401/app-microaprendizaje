@@ -121,3 +121,40 @@ export async function askStructured<T extends z.ZodType>({
     throw toAiError(err);
   }
 }
+
+/** Modelo barato y rápido para explicar términos sueltos (docs/04 §4.2). */
+export const CONCEPT_MODEL =
+  process.env.CLAUDE_CONCEPT_MODEL?.trim() || "claude-haiku-4-5-20251001";
+
+/** Pide a Claude una respuesta breve en texto plano. */
+export async function askText({
+  model,
+  system,
+  prompt,
+  maxTokens,
+}: {
+  model: string;
+  system: string;
+  prompt: string;
+  maxTokens: number;
+}): Promise<string> {
+  try {
+    const message = await getClient().messages.create({
+      model,
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: prompt }],
+    });
+    if (message.stop_reason === "refusal") {
+      throw new AiError("Claude no quiso explicar este fragmento.", false);
+    }
+    const text = message.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join("")
+      .trim();
+    if (!text) throw new AiError("Claude devolvió una respuesta vacía. Reintentá.", true, 5);
+    return text;
+  } catch (err) {
+    throw toAiError(err);
+  }
+}

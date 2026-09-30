@@ -47,12 +47,16 @@
 - Pestaña renombrada de "Banco" a "Banco de conceptos".
 - **Jerarquía del Banco (T2, 2026-08-23):** agrupado por Libro → Capítulo → Nodo con encabezados monoespaciados tipo IDE; capítulos ordenados por posición del nodo más temprano, términos por fecha descendente; cada libro es plegable (nace abierto) con contador.
 
-### ⚪ Falta implementar
+### ✅ T4 y T5 hechas (2026-09-29)
+
+`/api/concept` (Claude Haiku 4.5, tope 60/hora por usuario, modelo cambiable con `CLAUDE_CONCEPT_MODEL`). La tarjeta ofrece "Explicar con IA" (manual) y el Banco tiene "Explicar ahora" para los pendientes. Ya no hay texto "(Demo)". Sin probar aún con la clave real en producción.
+
+### ⚪ (Histórico) Especificación de T4/T5
 
 | # | Tarea | Especificación | Estimación |
 |---|-------|----------------|------------|
-| T4 | **Explicación real con IA** | Ruta interna `/api/concept`: recibe término + párrafo + ubicación, llama a **Claude Haiku 4.5** (Anthropic, actualizado 2026-09-08 — ver docs/04 §4.2) con clave del `.env.local` (`ANTHROPIC_API_KEY`), devuelve definición ≤60 palabras según prompt ya especificado en `docs/04 §4.2`. Costo estimado ~$1 cada 1000 llamadas. Sin clave configurada → mensaje neutro, nada se rompe. Instalar SDK `@anthropic-ai/sdk`. La clave NUNCA llega al navegador. Incluir un tope de uso simple (ver advertencias abajo) como red de seguridad. | M (~25k) |
-| T5 | **Cola de reconexión ("Explicar ahora")** | Detectar internet (`navigator.onLine` + eventos online/offline). En el Banco, aviso discreto "N conceptos pendientes — [Explicar ahora]". El botón procesa uno por uno contra `/api/concept` usando el párrafo guardado como contexto; exitosos pasan a `explicado`; los que fallan siguen pendientes sin castigo. Resumen final en una línea ("3 explicados, 1 para reintentar"). **Decisión del dueño (2026-08-23): botón MANUAL, no automático**, porque cada llamada cuesta dinero y él decide cuándo gastar. | M (~18k) |
+| ✅ T4 (2026-09-29) | **Explicación real con IA** | Ruta interna `/api/concept`: recibe término + párrafo + ubicación, llama a **Claude Haiku 4.5** (Anthropic, actualizado 2026-09-08 — ver docs/04 §4.2) con clave del `.env.local` (`ANTHROPIC_API_KEY`), devuelve definición ≤60 palabras según prompt ya especificado en `docs/04 §4.2`. Costo estimado ~$1 cada 1000 llamadas. Sin clave configurada → mensaje neutro, nada se rompe. Instalar SDK `@anthropic-ai/sdk`. La clave NUNCA llega al navegador. Incluir un tope de uso simple (ver advertencias abajo) como red de seguridad. | M (~25k) |
+| ✅ T5 (2026-09-29) | **Cola de reconexión ("Explicar ahora")** | Detectar internet (`navigator.onLine` + eventos online/offline). En el Banco, aviso discreto "N conceptos pendientes — [Explicar ahora]". El botón procesa uno por uno contra `/api/concept` usando el párrafo guardado como contexto; exitosos pasan a `explicado`; los que fallan siguen pendientes sin castigo. Resumen final en una línea ("3 explicados, 1 para reintentar"). **Decisión del dueño (2026-08-23): botón MANUAL, no automático**, porque cada llamada cuesta dinero y él decide cuándo gastar. | M (~18k) |
 
 > **T2 (jerarquía visual) quedó completada el 2026-08-23** — ver sección ✅ arriba.
 

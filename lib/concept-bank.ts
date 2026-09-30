@@ -228,3 +228,43 @@ export function removeFromBank(conceptId: string) {
   writeStorage(readStorage().filter((c) => c.id !== conceptId));
   emit();
 }
+
+/** Texto que se muestra en un concepto todavía sin explicar. */
+export const NO_EXPLANATION_YET = "Todavía sin explicación.";
+
+/** Pide a /api/concept la explicación de un término. Lanza Error con mensaje apto para mostrar. */
+export async function fetchExplanation(input: {
+  term: string;
+  paragraph?: string;
+  book: string;
+  chapter: string;
+}): Promise<string> {
+  let res: Response;
+  try {
+    res = await fetch("/api/concept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+  } catch {
+    throw new Error("Sin conexión. Queda pendiente para más tarde.");
+  }
+  const data = (await res.json().catch(() => ({}))) as {
+    definition?: string;
+    error?: string;
+  };
+  if (!res.ok || !data.definition) {
+    throw new Error(data.error ?? "No se pudo explicar ahora.");
+  }
+  return data.definition;
+}
+
+/** Guarda la explicación de un concepto ya existente y lo pasa a "explained". */
+export function setExplanation(conceptId: string, definition: string) {
+  writeStorage(
+    readStorage().map((c) =>
+      c.id === conceptId ? { ...c, definition, status: "explained" as const } : c
+    )
+  );
+  emit();
+}
