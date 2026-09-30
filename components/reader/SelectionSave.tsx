@@ -5,6 +5,8 @@ import { Plus, X } from "lucide-react";
 import {
   NO_EXPLANATION_YET,
   fetchExplanation,
+  getBankSnapshot,
+  setExplanation,
   saveFromSelection,
 } from "@/lib/concept-bank";
 import type { Book, Chapter, ConceptNode } from "@/types";
@@ -45,6 +47,26 @@ function matchGlossary(
       const t = g.term.toLowerCase();
       return lower.includes(t) || (lower.length >= 4 && t.includes(lower));
     });
+}
+
+function ExplainButton({
+  label,
+  loading,
+  onClick,
+}: {
+  label: string;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="inline-flex min-h-[40px] w-full items-center justify-center rounded-md bg-primary px-3 font-sans text-[13px] font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-ring"
+    >
+      {loading ? "Explicando…" : label}
+    </button>
+  );
 }
 
 /**
@@ -154,7 +176,8 @@ export function SelectionSave({ node, book, chapter }: Props) {
     };
   }, [clear, setPhase]);
 
-  async function handleExplain() {
+  /** Pide la explicación; si el concepto ya está guardado, la escribe en el banco. */
+  async function handleExplain(saveTo?: string) {
     if (!sel) return;
     setAiState("loading");
     try {
@@ -164,6 +187,7 @@ export function SelectionSave({ node, book, chapter }: Props) {
         book: book.title,
         chapter: chapter.title,
       });
+      if (saveTo) setExplanation(saveTo, def);
       setAiDef(def);
       setAiState("idle");
     } catch (e) {
@@ -172,7 +196,7 @@ export function SelectionSave({ node, book, chapter }: Props) {
     }
   }
 
-  function handleSave() {
+  function handleSave(explain = false) {
     if (!sel) return;
     const glossHit = matchGlossary(sel.term, node);
     const definition = glossHit?.definition ?? aiDef;
@@ -188,12 +212,18 @@ export function SelectionSave({ node, book, chapter }: Props) {
       sourceNodeIndex: node.orderIndex,
     });
     setPhase(ok ? "saved" : "exists");
+    if (ok && explain && !definition) void handleExplain(sel.term.toLowerCase());
   }
 
   if (!sel) return null;
 
   const glossHit = matchGlossary(sel.term, node);
   const shownDef = glossHit?.definition ?? aiDef;
+  const savedId = sel.term.toLowerCase();
+  const existingPending =
+    phase === "exists" &&
+    !shownDef &&
+    getBankSnapshot().some((c) => c.id === savedId && c.status === "pending");
   const isPending = !shownDef;
 
   return (
@@ -263,7 +293,7 @@ export function SelectionSave({ node, book, chapter }: Props) {
                 ? "Pensando una explicación…"
                 : aiState === "error"
                   ? aiError
-                  : "Sin explicación todavía. Podés pedirla ahora o guardarlo y explicarlo después desde el banco.")}
+                  : "Sin explicación todavía. Podés guardarlo y pedir que se explique ahora mismo.")}
           </p>
           <p className="mt-2 font-mono text-[10.5px] text-muted-foreground/70">
             {glossHit ? "del glosario del nodo · " : aiDef ? "explicado con IA · " : ""}
@@ -271,23 +301,27 @@ export function SelectionSave({ node, book, chapter }: Props) {
           </p>
 
           <div className="mt-3">
-            {phase === "choosing" && !shownDef && (
-              <button
-                onClick={handleExplain}
-                disabled={aiState === "loading"}
-                className="mb-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-md border border-border px-3 font-sans text-[13px] font-medium hover:bg-muted disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                {aiState === "error" ? "Reintentar explicación" : "Explicar con IA"}
-              </button>
-            )}
             {phase === "choosing" && (
-              <button
-                onClick={handleSave}
-                className="inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 font-sans text-[13px] font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                <Plus aria-hidden="true" className="size-4" /> Guardar en mi
-                banco de conceptos
-              </button>
+              <div className="space-y-2">
+                {!shownDef && (
+                  <ExplainButton
+                    label="Guardar y explicar ahora"
+                    loading={aiState === "loading"}
+                    onClick={() => handleSave(true)}
+                  />
+                )}
+                <button
+                  onClick={() => handleSave()}
+                  className={`inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-md px-3 font-sans text-[13px] font-medium focus-visible:outline-2 focus-visible:outline-ring ${
+                    shownDef
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border border-border hover:bg-muted"
+                  }`}
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  {shownDef ? "Guardar en mi banco de conceptos" : "Guardar sin explicar"}
+                </button>
+              </div>
             )}
             {phase === "saved" && (
               <p aria-live="polite" className="font-sans text-[13px]">
@@ -298,6 +332,24 @@ export function SelectionSave({ node, book, chapter }: Props) {
                   </span>
                 )}
               </p>
+            )}
+            {phase === "saved" && isPending && (
+              <div className="mt-2">
+                <ExplainButton
+                  label={aiState === "error" ? "Reintentar explicación" : "Explicar ahora"}
+                  loading={aiState === "loading"}
+                  onClick={() => void handleExplain(savedId)}
+                />
+              </div>
+            )}
+            {existingPending && (
+              <div className="mt-2">
+                <ExplainButton
+                  label="Explicar ahora"
+                  loading={aiState === "loading"}
+                  onClick={() => void handleExplain(savedId)}
+                />
+              </div>
             )}
             {phase === "exists" && (
               <p
