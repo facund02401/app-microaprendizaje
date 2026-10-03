@@ -30,6 +30,7 @@
 | F2-7 | Reprocesar un documento / editar cortes de nodos a mano | Si un corte no convence. |
 | ✅ F2-8 | Procesar por partes elegidas del índice, a medida que se lee (2026-09-24) | Ahorro: se paga solo lo que se lee (docs/10 D12). |
 | ✅ F2-9 | Artículos como una sola pieza; reconstrucciones marcadas en escaneados; respuestas/notas guardadas y exportación PDF (2026-09-24) | docs/10 D13–D15. |
+| ✅ F2-11 | Lectura en voz alta con la voz del navegador (2026-10-03) | docs/10 D18. Pendiente: que el dueño la pruebe en su compu y celular y diga si la voz alcanza. |
 | F2-10 | Número de página en las referencias del banco exportado | Hoy la ubicación es capítulo · nodo. |
 
 ---

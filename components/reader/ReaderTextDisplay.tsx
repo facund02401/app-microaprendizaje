@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { cn } from "@/lib/utils";
 import { GlossaryTooltip } from "@/components/reader/GlossaryTooltip";
 import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
 import { ReconstructedMark } from "@/components/reader/ReconstructedMark";
@@ -16,10 +17,13 @@ export function ReaderTextDisplay({
   node,
   book,
   chapter,
+  speaking = null,
 }: {
   node: ConceptNode;
   book: Book;
   chapter: Chapter;
+  /** Párrafo que se está leyendo en voz alta (docs/10 D18): tono tenue, distinto del subrayado. */
+  speaking?: number | null;
 }) {
   return (
     <article
@@ -31,13 +35,15 @@ export function ReaderTextDisplay({
       </h1>
       <h2 className="text-[1.5em] leading-snug font-bold mb-10">{node.title}</h2>
       <div className="space-y-[1.5em] [&_p]:indent-0 [&_p]:text-justify [&_p]:hyphens-auto">
-        {renderParagraphs(node, book, chapter)}
+        {renderParagraphs(node, book, chapter, speaking)}
       </div>
     </article>
   );
 }
 
-function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
+const SPEAKING_CLASS = "-mx-2 rounded-sm bg-muted/60 px-2";
+
+function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter, speaking: number | null) {
   const pending = new Map(
     node.contextGlossary.map((g) => [g.term.toLowerCase(), g])
   );
@@ -45,7 +51,11 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
   return node.excerptParagraphs.map((paragraph, pIndex) => {
     if (paragraph.startsWith(HEADING_PREFIX)) {
       return (
-        <h3 key={pIndex} data-p={pIndex} className="pt-2 text-[1.15em] leading-snug font-bold">
+        <h3
+          key={pIndex}
+          data-p={pIndex}
+          className={cn("pt-2 text-[1.15em] leading-snug font-bold", speaking === pIndex && SPEAKING_CLASS)}
+        >
           {paragraph.slice(HEADING_PREFIX.length)}
         </h3>
       );
@@ -113,7 +123,7 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter) {
     }
 
     return (
-      <p key={pIndex} data-p={pIndex}>
+      <p key={pIndex} data-p={pIndex} className={cn(speaking === pIndex && SPEAKING_CLASS)}>
         {parts}
       </p>
     );

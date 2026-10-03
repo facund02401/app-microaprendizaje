@@ -106,3 +106,13 @@
 - **Negocio:** cero costo (no usa IA).
 - **Pendiente (fase 2, solo si el dueño lo pide):** nota corta atada a un subrayado y vista "mis subrayados" del libro.
 - **Revertir:** quitar `HighlightLayer` de `ReaderView` y el botón de `SelectionSave`; la tabla puede quedar sin uso.
+
+### D18 — Lectura en voz alta, gratis *(pedido del dueño, 2026-10-03)*
+- **Usuario:** "¿Hay forma gratis de que me lea el texto?" — de acuerdo; opcional, que no empiece sola ni cambie de nodo sola.
+- **Técnica:** `speechSynthesis` (voz del navegador): sin servidor, sin clave, sin costo; el texto del autor no se toca. Se lee por frases (Chrome corta los textos largos). Las notas al pie se omiten; `⟦reconstruido⟧` se lee sin corchetes y `[ilegible]` se salta.
+- **Diseño:** control en el header junto al "Aa" (▶/⏸, ■ y velocidad/voz), nunca flotando sobre el texto. El párrafo en curso se marca con un tono tenue (`bg-muted/60`), distinto del subrayado y de "ya trabajado". Al terminar no avanza de nodo (reglas 4 y 6).
+- **Negocio:** cero costo y cero dependencia de proveedores.
+- **Límites conocidos:** la calidad depende del dispositivo (en Edge las voces "Natural" son muy buenas; en Chrome/Safari son correctas); si no hay voz en español se usa la predeterminada. Pausar corta y retoma desde la frase actual.
+- **Código:** `lib/tts.ts` (qué se lee y qué voz), `components/reader/ReadAloud.tsx`. Velocidad y voz se guardan en `localStorage` (`nodos-tts-rate`, `nodos-tts-voice`).
+- **Revertir:** quitar `<ReadAloud>` de `ReaderView` y la prop `speaking` de `ReaderTextDisplay`.
+- **Alternativa futura, solo si la voz no alcanza:** voz neuronal en el navegador (Piper/Kokoro, descarga de 50–300 MB) o un servicio de pago; la interfaz no cambia.
