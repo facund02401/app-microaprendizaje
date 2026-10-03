@@ -19,6 +19,7 @@ import { ConceptBankPanel } from "@/components/reader/ConceptBankPanel";
 import { NodeGlossarySection } from "@/components/reader/NodeGlossarySection";
 import { NodeNavigation } from "@/components/reader/NodeNavigation";
 import { ReaderTextDisplay } from "@/components/reader/ReaderTextDisplay";
+import { ReadAloud } from "@/components/reader/ReadAloud";
 import { ReflectionBox } from "@/components/reader/ReflectionBox";
 import { SelectionSave } from "@/components/reader/SelectionSave";
 import { HighlightLayer } from "@/components/reader/HighlightLayer";
@@ -88,6 +89,8 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
   const [desktopPref, setDesktopPref] = useState<boolean | null>(null);
   // Última acción manual del usuario (gana sobre los valores por defecto).
   const [override, setOverride] = useState<boolean | null>(null);
+  // Párrafo que se lee en voz alta, atado al nodo para que no se arrastre al cambiar de nodo.
+  const [reading, setReading] = useState<{ key: string; paragraph: number } | null>(null);
   // Pestaña activa del explorador: mapa de nodos o banco de conceptos.
   const [explorerTab, setExplorerTab] = useState<"nodos" | "banco">("nodos");
   const bankCount = useSyncExternalStore(
@@ -170,6 +173,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
   }, [current]);
 
   const { chapter, node } = nodes[current];
+  const speaking = reading && reading.key === nodeKey(node) ? reading.paragraph : null;
   // Último nodo preparado de este capítulo: se ofrece exportar sus apuntes.
   const chapterEnds = current === total - 1 || nodes[current + 1].chapter.id !== chapter.id;
 
@@ -203,6 +207,13 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
             `Nodo ${String(node.orderIndex).padStart(2, "0")}`,
           ]}
           className="min-w-0 flex-1"
+        />
+        <ReadAloud
+          key={nodeKey(node)}
+          node={node}
+          onParagraph={(paragraph) =>
+            setReading(paragraph === null ? null : { key: nodeKey(node), paragraph })
+          }
         />
         <FontToggle />
         <ThemeToggle />
@@ -289,7 +300,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
           className="flex-1 overflow-y-auto"
         >
           <div className="bg-editor min-h-full px-6 py-10 sm:px-10 sm:py-16">
-            <ReaderTextDisplay node={node} book={book} chapter={chapter} />
+            <ReaderTextDisplay node={node} book={book} chapter={chapter} speaking={speaking} />
 {/* Avanzar va primero: glosario y notas son opcionales, no un paso obligado */}
             <nav
               aria-label="Nodos vecinos"
