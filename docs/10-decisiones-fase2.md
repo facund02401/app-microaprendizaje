@@ -116,3 +116,11 @@
 - **Código:** `lib/tts.ts` (qué se lee y qué voz), `components/reader/ReadAloud.tsx`. Velocidad y voz se guardan en `localStorage` (`nodos-tts-rate`, `nodos-tts-voice`).
 - **Revertir:** quitar `<ReadAloud>` de `ReaderView` y la prop `speaking` de `ReaderTextDisplay`.
 - **Alternativa futura, solo si la voz no alcanza:** voz neuronal en el navegador (Piper/Kokoro, descarga de 50–300 MB) o un servicio de pago; la interfaz no cambia.
+
+### D19 — Errores de lectura en PDFs con texto *(pedido del dueño, 2026-10-27)*
+- **Problema:** un PDF que ya trae capa de texto (p. ej. escaneado con una app del celular) se usa tal cual y nunca pasa por Claude. Su OCR viejo deja errores como "nos nevó a proponer" (por "llevó"). Caso real: "Proceso y no proceso en el trabajo analítico".
+- **Decisión:** en PDFs, la misma llamada que divide la parte en nodos también marca errores de lectura **claros**. Sin lectura extra de imágenes, así que el costo agregado son centavos (solo respuesta más larga). Word/EPUB/TXT no se revisan.
+- **Texto intacto:** Claude no devuelve texto. Propone `{párrafo, fragmento, reemplazo}` y el código lo aplica solo si pasa las guardas (`lib/ai/corrections.ts`): fragmento de ≤4 palabras que aparece una sola vez, cambio de pocas letras (no reescrituras), no en títulos, no dentro de otra marca, máximo 40 por tanda. Lo aplicado queda marcado `⟦…⟧` (subrayado discontinuo, "Reconstruido por contexto"), nunca en silencio.
+- **Límite conocido:** la palabra original ("nevó") no se guarda; para compararla hay que mirar el PDF.
+- **Apagar:** variable `CLAUDE_REVIEW_READING=off` en Vercel + Redeploy. Solo afecta partes que se preparen después.
+- **Pendiente de medir:** cuántos errores reales detecta y cuántas falsas alarmas da cada modelo (Opus / Sonnet / Haiku vía `CLAUDE_MODEL`) y el costo real. Ver TODO.md.

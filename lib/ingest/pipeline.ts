@@ -281,6 +281,14 @@ async function sectionParagraphs(
   return (data?.paragraphs as string[] | null) ?? null;
 }
 
+/**
+ * Revisión de errores de lectura: solo PDFs (Word/EPUB/TXT traen texto limpio).
+ * Se apaga con CLAUDE_REVIEW_READING=off.
+ */
+function reviewReadingErrors(doc: DocumentRow): boolean {
+  return doc.file_type === "pdf" && process.env.CLAUDE_REVIEW_READING?.trim().toLowerCase() !== "off";
+}
+
 /** Segmenta la próxima ventana de una sección y guarda capítulos y nodos. */
 async function segmentSection(
   sb: SupabaseClient,
@@ -304,7 +312,7 @@ async function segmentSection(
     words += countWords(paragraphs[end]);
     end++;
   }
-  const window = paragraphs.slice(start, end);
+  const rawWindow = paragraphs.slice(start, end);
   const isEnd = end >= paragraphs.length;
   const base = positionOf(section.idx, 0);
 
@@ -320,14 +328,16 @@ async function segmentSection(
     .from("chapters").select("order_index").eq("document_id", doc.id)
     .order("order_index", { ascending: false }).limit(1).maybeSingle();
 
-  const segmented = await segmentWindow(window, {
+  const { nodes: segmented, paragraphs: window, corrected } = await segmentWindow(rawWindow, {
     bookTitle: doc.title,
     author: doc.author,
     chapterTitle: lastChapter?.title ?? section.title,
     previousNodeTitle: lastNode?.title ?? null,
     isEnd,
     nodeSize,
+    reviewReading: reviewReadingErrors(doc),
   });
+  if (corrected) console.info(`[ingesta] ${doc.id}: ${corrected} errores de lectura marcados ⟦…⟧`);
 
   // El último nodo de la ventana puede estar incompleto: se revisa en la próxima,
   // salvo que sea el final de la sección o el único nodo encontrado.

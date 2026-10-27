@@ -4,6 +4,7 @@ import { askStructured } from "./claude";
 import { segmentSystem, segmentUserPrompt } from "./prompts";
 import type { NodeSize } from "@/lib/node-size";
 import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { applyCorrections } from "./corrections";
 
 const NodeSchema = z.object({
   start: z.number().int(),
@@ -14,7 +15,16 @@ const NodeSchema = z.object({
   reflection_prompt: z.string(),
 });
 
-const SegmentSchema = z.object({ nodes: z.array(NodeSchema) });
+const CorrectionSchema = z.object({
+  paragraph: z.number().int(),
+  found: z.string(),
+  replacement: z.string(),
+});
+
+const SegmentSchema = z.object({
+  nodes: z.array(NodeSchema),
+  corrections: z.array(CorrectionSchema),
+});
 
 export type SegmentedNode = z.infer<typeof NodeSchema>;
 
@@ -25,6 +35,15 @@ export interface SegmentContext {
   previousNodeTitle: string | null;
   isEnd: boolean;
   nodeSize: NodeSize;
+  /** Pide también marcar errores de lectura del texto (PDFs con OCR viejo). */
+  reviewReading: boolean;
+}
+
+export interface SegmentedWindow {
+  nodes: SegmentedNode[];
+  /** Párrafos de la ventana con las correcciones aplicadas (marcadas ⟦…⟧). */
+  paragraphs: string[];
+  corrected: number;
 }
 
 /**
@@ -35,12 +54,12 @@ export interface SegmentContext {
 export async function segmentWindow(
   paragraphs: string[],
   ctx: SegmentContext
-): Promise<SegmentedNode[]> {
+): Promise<SegmentedWindow> {
   const numbered = paragraphs.map((p, i) => `[P${i + 1}] ${p}`).join("\n\n");
 
-  const { nodes } = await askStructured({
+  const { nodes, corrections } = await askStructured({
     schema: SegmentSchema,
-    system: segmentSystem(ctx.nodeSize),
+    system: segmentSystem(ctx.nodeSize, ctx.reviewReading),
     content: [{ type: "text", text: segmentUserPrompt({ ...ctx, numberedParagraphs: numbered }) }],
     maxTokens: 32000,
     effort: "medium",
@@ -61,18 +80,26 @@ export async function segmentWindow(
     .sort((a, b) => a.start - b.start)
     .filter((n) => (seen.has(n.start) ? false : (seen.add(n.start), true)));
 
+  const fixed = ctx.reviewReading
+    ? applyCorrections(paragraphs, corrections)
+    : { paragraphs, applied: 0, rejected: 0 };
+
   if (!clean.length) {
-    return [
-      {
-        start: 1,
-        kind: "lectura",
-        chapter_title: null,
-        title: "Fragmento",
-        glossary: [],
-        reflection_prompt: "¿Qué idea de este fragmento te gustaría poder explicar con tus palabras?",
-      },
-    ];
+    return {
+      nodes: [
+        {
+          start: 1,
+          kind: "lectura",
+          chapter_title: null,
+          title: "Fragmento",
+          glossary: [],
+          reflection_prompt: "¿Qué idea de este fragmento te gustaría poder explicar con tus palabras?",
+        },
+      ],
+      paragraphs: fixed.paragraphs,
+      corrected: fixed.applied,
+    };
   }
   clean[0] = { ...clean[0], start: 1 };
-  return clean;
+  return { nodes: clean, paragraphs: fixed.paragraphs, corrected: fixed.applied };
 }

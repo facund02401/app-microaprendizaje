@@ -26,7 +26,7 @@ export function ReconstructedMark({ text, illegible }: { text: string; illegible
       <PopoverContent className="w-64 font-sans text-[13px] leading-relaxed" side="top">
         {illegible
           ? "En el original escaneado esta parte no se puede leer, y el contexto no alcanzaba para deducirla."
-          : "Reconstruido por contexto: en el original escaneado esta parte se lee mal."}
+          : "Reconstruido por contexto: en el original esta parte se lee mal."}
       </PopoverContent>
     </Popover>
   );

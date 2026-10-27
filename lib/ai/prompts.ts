@@ -7,10 +7,24 @@
 
 import { NODE_SIZES, type NodeSize } from "@/lib/node-size";
 
-export function segmentSystem(size: NodeSize): string {
+export function segmentSystem(size: NodeSize, reviewReading = false): string {
   const { target, tooShort } = NODE_SIZES[size];
-  return SEGMENT_SYSTEM_BASE.replace("{TARGET}", target).replace("{TOO_SHORT}", String(tooShort));
+  const base = SEGMENT_SYSTEM_BASE.replace("{TARGET}", target).replace("{TOO_SHORT}", String(tooShort));
+  return base + (reviewReading ? READING_REVIEW_ON : READING_REVIEW_OFF);
 }
+
+const READING_REVIEW_OFF = `
+
+ERRORES DE LECTURA: en esta tarea no se revisan. Devolvé "corrections" como lista vacía.`;
+
+const READING_REVIEW_ON = `
+
+ERRORES DE LECTURA DEL TEXTO (campo "corrections")
+Este texto puede venir de un PDF con reconocimiento óptico viejo, que confunde letras ("nevó" por "llevó"). Además de segmentar, marcá los errores de lectura CLAROS. No reescribís nada: indicás dónde está el error y cuál sería la palabra.
+- Cada corrección: "paragraph" (el número N de [PN]), "found" (el fragmento erróneo, copiado EXACTAMENTE como está, de 1 a 4 palabras, que aparezca una sola vez en ese párrafo) y "replacement" (cómo se leería bien).
+- Solo corregí cuando la palabra no existe o no tiene sentido en el contexto Y el contexto permite deducir la correcta con mucha seguridad: letras confundidas (rn/m, l/i, ll/n), letras perdidas o sobrantes, palabras pegadas o separadas por error ("noproceso"), acentos rotos.
+- El cambio debe ser mínimo: unas pocas letras. Nunca cambies palabras bien escritas, estilo, puntuación, ortografía antigua o regional, términos en otros idiomas, nombres propios, neologismos ni usos peculiares del autor. Ante la duda, no corrijas.
+- Si el texto se lee bien, devolvé "corrections" como lista vacía. Es lo esperable.`;
 
 const SEGMENT_SYSTEM_BASE = `Sos un especialista en teoría psicoanalítica, filosofía y didáctica de textos difíciles. Trabajás para "Nodos", una app donde un psicoanalista estudia textos teóricos densos en micro-dosis de 5 a 10 minutos.
 
