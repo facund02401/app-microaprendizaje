@@ -69,7 +69,8 @@ Ver `docs/06-roadmap.md`. **Fase 1: completa.** **Fase 2 — núcleo completo (2
 ## Reglas técnicas de Fase 2
 
 - **Texto intacto por construcción:** Claude nunca devuelve el texto del autor; solo el número de párrafo donde empieza cada nodo (`lib/ai/segment.ts`). No cambiar esto sin consultar al dueño.
-- **Convención de párrafos:** `# ` = título del libro, `[nota] ` = nota al pie (`lib/ingest/text.ts`). En escaneados, `⟦…⟧` = reconstruido por contexto y `[ilegible]` = no deducible (docs/10 D15); el lector los muestra marcados, nunca en silencio.
+- **Convención de párrafos:** `# ` = título del libro, `[nota 3] ` = nota al pie con su número (`[nota] ` si no se supo) y `[^3]` = su llamada dentro del párrafo; cada nota va justo después del párrafo que la cita y el lector la abre al tocar el número (`lib/ingest/text.ts`, docs/10 D21). En escaneados, `⟦…⟧` = reconstruido por contexto y `[ilegible]` = no deducible (docs/10 D15); el lector los muestra marcados, nunca en silencio.
+- **Limpieza de números de página y encabezados repetidos:** `lib/ingest/clean.ts` (docs/10 D22). Se quitan al extraer (PDF, escaneados, Word/EPUB, .txt) y el lector oculta además los párrafos que son solo un número de página. Nunca se quita nada que pueda ser texto del autor: ante la duda, queda.
 - **Textos breves (≤ 15.000 palabras / 40 págs. escaneadas):** una sola parte, sin índice (docs/10 D13).
 - **Apuntes:** `node_responses` (respuesta + nota por nodo) y `concept_bank` (espejo del banco local, se sincroniza con `syncBank()`); exportación PDF en `/api/documents/[id]/export[?chapter=]` (`lib/export/`). Nunca mostrar "guardado" sin haber guardado.
 - **Todo trabajo con IA es por pasos ≤ 300 s** (`/api/documents/[id]/step`), reanudable y con costo estimado antes de empezar.

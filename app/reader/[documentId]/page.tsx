@@ -4,7 +4,7 @@ import { CLAUDE_MODEL, aiConfigured } from "@/lib/ai/claude";
 import { loadBook } from "@/lib/books";
 import { mockBook } from "@/lib/mock-data";
 import { supabaseConfigured } from "@/lib/supabase/config";
-import { loadReadingWpm } from "@/lib/reading-pace-server";
+import { loadReadingSamples } from "@/lib/reading-pace-server";
 import { getUser } from "@/lib/supabase/server";
 import { SECTION_COLUMNS, type NodeResponse, type SectionRow } from "@/types";
 
@@ -21,11 +21,11 @@ export default async function ReaderPage({ params }: Props) {
 
   const { supabase, user } = await getUser();
   if (!user) notFound();
-  const [book, { data: sections }, { data: rows }, wpm] = await Promise.all([
+  const [book, { data: sections }, { data: rows }, paceSamples] = await Promise.all([
     loadBook(supabase, documentId),
     supabase.from("document_sections").select(SECTION_COLUMNS).eq("document_id", documentId).order("idx"),
     supabase.from("node_responses").select("node_id, answer, note").eq("document_id", documentId),
-    loadReadingWpm(supabase),
+    loadReadingSamples(supabase),
   ]);
   if (!book) notFound();
   const responses: Record<string, NodeResponse> = Object.fromEntries(
@@ -36,7 +36,7 @@ export default async function ReaderPage({ params }: Props) {
     <ReaderView
       book={book}
       responses={responses}
-      wpm={wpm}
+      paceSamples={paceSamples}
       processing={{
         sections: (sections ?? []) as SectionRow[],
         model: CLAUDE_MODEL,

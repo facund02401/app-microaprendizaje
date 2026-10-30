@@ -3,7 +3,7 @@ import { z } from "zod";
 import { askStructured } from "./claude";
 import { segmentSystem, segmentUserPrompt } from "./prompts";
 import type { NodeSize } from "@/lib/node-size";
-import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { HEADING_PREFIX, isNote } from "@/lib/ingest/text";
 import { applyCorrections } from "./corrections";
 import { spellcheckEnabled, spellcheckWindow } from "./spellcheck";
 
@@ -70,7 +70,7 @@ export async function segmentWindow(
   // ni el anterior termina con un título suelto (el título abre este nodo).
   const adjusted = nodes.map((n) => {
     let start = n.start;
-    while (start > 1 && start <= paragraphs.length && paragraphs[start - 1].startsWith(NOTE_PREFIX)) start++;
+    while (start > 1 && start <= paragraphs.length && isNote(paragraphs[start - 1])) start++;
     while (start > 1 && paragraphs[start - 2]?.startsWith(HEADING_PREFIX)) start--;
     return { ...n, start };
   });
@@ -85,7 +85,7 @@ export async function segmentWindow(
     ? { ...applyCorrections(paragraphs, corrections) }
     : { paragraphs, applied: 0, rejected: 0 };
 
-  // Segunda pasada: diccionario + modelo chico sobre palabras que no existen (docs/10 D21).
+  // Segunda pasada: diccionario + modelo chico sobre palabras que no existen (docs/10 D23).
   if (ctx.reviewReading && spellcheckEnabled()) {
     const spell = await spellcheckWindow(fixed.paragraphs);
     fixed.paragraphs = spell.paragraphs;

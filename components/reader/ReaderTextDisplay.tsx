@@ -3,7 +3,9 @@
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import { GlossaryTooltip } from "@/components/reader/GlossaryTooltip";
-import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { HEADING_PREFIX, isNote, noteRefs, parseNote } from "@/lib/ingest/text";
+import { isStrayPageNumber } from "@/lib/ingest/clean";
+import { NoteRef } from "@/components/reader/NoteRef";
 import { ReconstructedMark } from "@/components/reader/ReconstructedMark";
 import type { Chapter, ConceptNode } from "@/types";
 import type { Book } from "@/types";
@@ -48,7 +50,26 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter, speak
     node.contextGlossary.map((g) => [g.term.toLowerCase(), g])
   );
 
-  return node.excerptParagraphs.map((paragraph, pIndex) => {
+  // Cada llamada [^n] se empareja con la nota "n" que sigue a su párrafo;
+  // las notas emparejadas se abren desde el número y no ocupan lugar en la página.
+  const paras = node.excerptParagraphs;
+  const refNote = new Map<string, number>();
+  const shown = new Set<number>();
+  paras.forEach((paragraph, i) => {
+    if (isNote(paragraph)) return;
+    for (const label of noteRefs(paragraph)) {
+      for (let j = i + 1; j < paras.length && isNote(paras[j]); j++) {
+        if (shown.has(j) || parseNote(paras[j])?.label !== label) continue;
+        shown.add(j);
+        refNote.set(`${i}:${label}`, j);
+        break;
+      }
+    }
+  });
+
+  return paras.map((paragraph, pIndex) => {
+    // Número de página que se coló al preparar el texto (docs/10 D22): no es del autor.
+    if (shown.has(pIndex) || isStrayPageNumber(paragraph)) return null;
     if (paragraph.startsWith(HEADING_PREFIX)) {
       return (
         <h3
@@ -60,14 +81,16 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter, speak
         </h3>
       );
     }
-    if (paragraph.startsWith(NOTE_PREFIX)) {
+    const note = parseNote(paragraph);
+    if (note) {
       return (
         <p
           key={pIndex}
           data-p={pIndex}
           className="border-l-2 border-border pl-3 text-left text-[0.85em] leading-relaxed text-muted-foreground"
         >
-          {paragraph.slice(NOTE_PREFIX.length)}
+          {note.label && <span className="mr-1.5 font-mono text-[0.85em]">{note.label}</span>}
+          {note.text}
         </p>
       );
     }
@@ -75,9 +98,16 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter, speak
     const parts: React.ReactNode[] = [];
     let key = 0;
 
-    // Marcas de escaneo (⟦reconstruido⟧ / [ilegible]) aparte; el glosario solo en el resto.
-    for (const segment of paragraph.split(/(⟦[^⟧]+⟧|\[ilegible\])/)) {
+    // Llamadas de nota ([^n]) y marcas de escaneo (⟦reconstruido⟧ / [ilegible]) aparte; el glosario solo en el resto.
+    for (const segment of paragraph.split(/(⟦[^⟧]+⟧|\[ilegible\]|\[\^(?:\d{1,3}|\*{1,3})\])/)) {
       if (!segment) continue;
+      const ref = segment.match(/^\[\^(\d{1,3}|\*{1,3})\]$/);
+      if (ref) {
+        const at = refNote.get(`${pIndex}:${ref[1]}`);
+        const text = at === undefined ? null : (parseNote(paras[at])?.text ?? null);
+        parts.push(<NoteRef key={key++} label={ref[1]} note={text} />);
+        continue;
+      }
       if (segment === "[ilegible]") {
         parts.push(<ReconstructedMark key={key++} text={segment} illegible />);
         continue;

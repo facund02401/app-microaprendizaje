@@ -131,11 +131,30 @@
 - **Qué se descarta (`lib/reading-pace.ts`):** menos de 40 s, nodos de menos de 100 palabras, y ritmos fuera de 25–300 palabras por minuto (800 palabras en 1 minuto es pasar la vista; 240 en 1 minuto es lector rápido pero posible).
 - **Cómo se calcula:** mediana de las últimas 10 lecturas válidas, global del lector (no por libro). Con menos de 5 lecturas se mezcla con el 80 de partida (con 1 lectura pesa 10 %, con 4 pesa 40 %); tope 40–200. Los umbrales se revalidan al calcular, así que se pueden cambiar sin perder historia.
 - **Datos:** tabla `node_reading_times` (migración `20261030_006_ritmo_lectura.sql`, RLS como el resto). Si falla guardar o leer, se usa 80 y la lectura no se entera.
+- **Se actualiza al pasar de nodo:** las lecturas recientes viajan al lector y, al guardar una lectura válida, el ritmo se recalcula en el momento (sin recargar). Cada nodo cuenta una sola vez.
 - **Código:** `lib/reading-pace.ts` (reglas puras), `lib/reading-pace-server.ts` (carga), `components/reader/useReadingTimer.ts` (medidor).
 - **Límite conocido:** quien lee sin tocar nada más de 120 s seguidos queda subcontado y el ritmo estimado sale algo más rápido. Si pasa, subir más `IDLE_PAUSE_SECONDS` (hoy 120 s).
 - **Revertir:** quitar `useReadingTimer` de `ReaderView`; los tiempos vuelven al 80 si se borran las filas de `node_reading_times`.
 
-### D21 — Diccionario + Haiku para errores de lectura *(pedido del dueño, 2026-10-30)*
+### D21 — Notas al pie ligadas a su número *(pedido del dueño, 2026-10-30)*
+- **Problema:** la nota era un párrafo suelto en letra chica al final de la página, sin vínculo con el numerito del texto (que quedaba pegado a la palabra) y a veces lejos de donde se la cita.
+- **Qué hace:** la llamada del autor pasa a `[^3]` en el texto y la nota a `[nota 3] …`, ubicada justo después del párrafo que la cita. El lector muestra el número como superíndice; al tocarlo (o Enter) abre la nota en un globito, como el glosario. El texto queda limpio y las notas con pareja no ocupan lugar.
+- **Cómo se detecta:** PDF con texto: número chico y elevado en medio del renglón (`lib/ingest/pdf.ts`), emparejado dentro de su página (la numeración reinicia por página). Escaneados: el prompt de OCR pide `[^N]`. Word/EPUB: `<sup>`/enlaces a `#` (`lib/ingest/html.ts`), y `placeNotes` acomoda notas que vienen juntas (p. ej. al final).
+- **Sin pareja:** una llamada sin nota se ve como número tenue; una nota sin llamada sigue como bloque en letra chica. Lo ya preparado (`[nota] …`) se ve igual que antes.
+- **Además:** las notas no cuentan en los minutos estimados; la voz alta las salta y no lee los números.
+- **Alcance:** solo lo que se prepare después. Sin migración. Para rehacer un libro viejo hay que volver a prepararlo.
+
+### D22 — Números de página y encabezados fuera del texto *(pedido del dueño, 2026-10-30)*
+- **Problema:** a veces se colaban números de página, encabezados y pies ("Obras completas · Freud", "Capítulo II") dentro de los nodos. El limpiador anterior solo miraba 2 renglones por borde de página, confundía palabras como "Mil" con romanos, y no cubría escaneados ni .txt.
+- **Dónde se limpia (`lib/ingest/clean.ts`, función pura):**
+  1. **PDF con texto** (`pdf.ts`): mira 3 renglones por borde; quita números de página (`12`, `- 12 -`, `Página 12`, `12 / 300`, romanos en minúscula) y encabezados que se repiten en ≥ 3 páginas (o 15 %). La clave ignora el número de página pegado al encabezado, así que sirve para encabezados alternos par/impar; un "Capítulo 3" suelto conserva su número y no se confunde con un encabezado.
+  2. **Escaneados:** el prompt de OCR ahora lista las formas de número y encabezado a omitir y distingue el título de capítulo (una vez) del encabezado (repetido). Además, al armar la sección (`assemblePages`) se pasa la misma limpieza sobre las páginas ya transcriptas, con la vista de todo el bloque.
+  3. **Word/EPUB:** se ignoran las marcas de salto de página del EPUB (`epub:type="pagebreak"`) y se quitan párrafos que son solo un número o un renglón corto repetido ≥ 4 veces.
+  4. **.txt:** por renglón, con contexto de todo el texto. Un número suelto en su renglón solo se quita si viene tras un punto o una línea en blanco ("hasta el / 20 / de mayo" se respeta).
+  5. **Lector y voz alta:** ocultan los párrafos que son solo un número de página, aunque ya estén guardados. Es solo visual; no se cambia lo guardado.
+- **Límites conocidos:** un número de página a mitad de oración con líneas en blanco alrededor en un .txt corta el párrafo en dos; un encabezado de una sola palabra con el número pegado ("FREUD 45") no se reconoce; un título de capítulo repetido arriba de ≥ 3 páginas se tomaría por encabezado. Lo ya preparado se corrige en el lector (solo números sueltos); para el resto hay que volver a preparar el libro.
+
+### D23 — Diccionario + Haiku para errores de lectura *(pedido del dueño, 2026-10-30)*
 - **Problema:** la revisión de D19 (dentro de la llamada de Opus) deja pasar errores. Un diccionario encuentra mejor las palabras que no existen.
 - **Qué hace:** al preparar una parte de un PDF, después de la revisión de D19, el código pasa el texto por el diccionario de español (`dictionary-es` + `nspell`, gratis, sin red) y arma la lista de palabras que no existen. Haiku recibe solo esas frases (no el libro) y decide cuáles son errores claros. Código: `lib/ai/spell-suspects.ts` (lógica pura), `lib/ai/spellcheck.ts` (Haiku).
 - **Texto intacto:** igual que D19: Haiku no devuelve texto, el código aplica `applyCorrections` con sus guardas y queda marcado `⟦…⟧`. Si Haiku falla, la ingesta sigue sin corregir.

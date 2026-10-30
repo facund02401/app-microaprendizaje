@@ -31,6 +31,7 @@ import { ContinuePanel } from "@/components/reader/ContinuePanel";
 import { flatNodes, nodeKey } from "@/types";
 import { EMPTY_RESPONSE } from "@/types";
 import type { Book, NodeResponse, SectionRow } from "@/types";
+import { DEFAULT_READING_WPM, RECENT_SAMPLES, paceFromSamples, type NodeSample } from "@/lib/reading-pace";
 import { syncBank } from "@/lib/concept-bank";
 import { syncHighlights } from "@/lib/highlights";
 import { useReadingTimer } from "@/components/reader/useReadingTimer";
@@ -42,8 +43,8 @@ interface Props {
   processing?: { sections: SectionRow[]; model: string; aiReady: boolean };
   /** Respuestas y notas ya guardadas en la cuenta, por id de nodo. */
   responses?: Record<string, NodeResponse>;
-  /** Ritmo del lector (palabras por minuto): ajusta en silencio los tiempos estimados. */
-  wpm?: number;
+  /** Últimas lecturas del lector: ajustan en silencio los tiempos estimados. */
+  paceSamples?: NodeSample[];
 }
 
 /** Punto de corte escritorio/móvil: <768px el explorador es cajón flotante. */
@@ -60,8 +61,18 @@ function subscribeMq(onChange: () => void) {
  * En móvil (<768px) el explorador nace cerrado y se abre como cajón sobre
  * el texto, con fondo oscurecido que lo cierra al tocarlo.
  */
-export function ReaderView({ book, processing, responses: initialResponses, wpm }: Props) {
+export function ReaderView({ book, processing, responses: initialResponses, paceSamples }: Props) {
   const cloud = book.source === "cloud";
+  // Lecturas recientes, de la más nueva a la más vieja; cada nodo cuenta una sola vez.
+  const [samples, setSamples] = useState<NodeSample[]>(paceSamples ?? []);
+  const wpm = samples.length ? paceFromSamples(samples) : DEFAULT_READING_WPM;
+  const addSample = useCallback(
+    (s: NodeSample) =>
+      setSamples((prev) =>
+        prev.some((p) => p.node_id === s.node_id) ? prev : [s, ...prev].slice(0, RECENT_SAMPLES * 3)
+      ),
+    []
+  );
   const [responses, setResponses] = useState<Record<string, NodeResponse>>(initialResponses ?? {});
 
   // Trae al dispositivo el banco de conceptos guardado en la cuenta.
@@ -177,7 +188,7 @@ export function ReaderView({ book, processing, responses: initialResponses, wpm 
 
   const { chapter, node } = nodes[current];
   const speaking = reading && reading.key === nodeKey(node) ? reading.paragraph : null;
-  useReadingTimer({ documentId: book.documentId, cloud, index: current, node, speaking: speaking !== null });
+  useReadingTimer({ documentId: book.documentId, cloud, index: current, node, speaking: speaking !== null, onSample: addSample });
   // Último nodo preparado de este capítulo: se ofrece exportar sus apuntes.
   const chapterEnds = current === total - 1 || nodes[current + 1].chapter.id !== chapter.id;
 

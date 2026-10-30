@@ -7,7 +7,7 @@ import { applyCorrections, type CorrectionResult, type ReadingCorrection } from 
 import { findSuspects, toCorrection, type Speller, type Suspect } from "./spell-suspects";
 
 /**
- * Revisión por diccionario + modelo chico (docs/10 D21): el diccionario de español
+ * Revisión por diccionario + modelo chico (docs/10 D23): el diccionario de español
  * (gratis, sin red) marca las palabras que no existen y Haiku decide solo sobre
  * esas frases. El texto nunca lo devuelve la IA: se aplica con las guardas de
  * `applyCorrections` y queda marcado ⟦…⟧.

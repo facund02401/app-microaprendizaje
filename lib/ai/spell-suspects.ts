@@ -3,7 +3,7 @@
  * conoce. Lógica pura (sin red ni IA) para poder probarla sola; el diccionario
  * se inyecta (lib/ai/spellcheck.ts lo carga) y Haiku decide después qué corregir.
  */
-import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { HEADING_PREFIX, isNote } from "@/lib/ingest/text";
 import type { ReadingCorrection } from "./corrections";
 
 export interface Speller {
@@ -52,10 +52,8 @@ const FOREIGN_LETTERS = /[äöß]|[wk]/i;
 function maskedBody(paragraph: string): string {
   const blank = (m: string) => " ".repeat(m.length);
   if (paragraph.startsWith(HEADING_PREFIX)) return blank(paragraph);
-  const text = paragraph.startsWith(NOTE_PREFIX)
-    ? blank(NOTE_PREFIX) + paragraph.slice(NOTE_PREFIX.length)
-    : paragraph;
-  return text.replace(/⟦[^⟧]*⟧/g, blank).replace(/\[ilegible\]/gi, blank);
+  const text = isNote(paragraph) ? paragraph.replace(/^\[nota[^\]]*\]\s/, blank) : paragraph;
+  return text.replace(/⟦[^⟧]*⟧/g, blank).replace(/\[\^[^\]]*\]/g, blank).replace(/\[ilegible\]/gi, blank);
 }
 
 function isUnknown(word: string, speller: Speller): boolean {

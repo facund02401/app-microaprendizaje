@@ -3,7 +3,8 @@
  * sin servidor, sin claves y sin costo. Estas funciones son puras: arman qué se
  * lee y con qué voz; la reproducción vive en `components/reader/ReadAloud.tsx`.
  */
-import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
+import { HEADING_PREFIX, isNote, stripNoteRefs } from "@/lib/ingest/text";
+import { isStrayPageNumber } from "@/lib/ingest/clean";
 import type { ConceptNode } from "@/types";
 
 export const TTS_RATES = [0.8, 1, 1.2, 1.5] as const;
@@ -47,18 +48,18 @@ export function splitIntoChunks(text: string, max = MAX_CHUNK_CHARS): string[] {
   return out;
 }
 
-/** Lo que se lee de un nodo: título y párrafos; las notas al pie se omiten. */
+/** Lo que se lee de un nodo: título y párrafos; las notas al pie y sus números se omiten. */
 export function buildSpeechChunks(node: Pick<ConceptNode, "title" | "excerptParagraphs">): SpeechChunk[] {
   const chunks: SpeechChunk[] = [];
   const title = cleanForSpeech(node.title);
   if (title) chunks.push({ paragraph: null, text: `${title}.` });
 
   node.excerptParagraphs.forEach((paragraph, index) => {
-    if (paragraph.startsWith(NOTE_PREFIX)) return;
+    if (isNote(paragraph) || isStrayPageNumber(paragraph)) return;
     const body = paragraph.startsWith(HEADING_PREFIX)
       ? paragraph.slice(HEADING_PREFIX.length)
       : paragraph;
-    const clean = cleanForSpeech(body);
+    const clean = cleanForSpeech(stripNoteRefs(body));
     if (!clean) return;
     for (const text of splitIntoChunks(clean)) chunks.push({ paragraph: index, text });
   });

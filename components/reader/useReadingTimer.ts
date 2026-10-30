@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { IDLE_PAUSE_SECONDS, countWords, isValidSample } from "@/lib/reading-pace";
+import { IDLE_PAUSE_SECONDS, countWords, isValidSample, type NodeSample } from "@/lib/reading-pace";
 import { createClient } from "@/lib/supabase/client";
 import type { ConceptNode } from "@/types";
 
@@ -44,9 +44,10 @@ function startClock(index: number, node: ConceptNode, cloud: boolean): Clock {
 }
 
 /** Falla en silencio: medir el ritmo nunca debe molestar la lectura. */
-function saveSample(documentId: string, c: Clock) {
+function saveSample(documentId: string, c: Clock, onSample: (s: NodeSample) => void) {
   const seconds = Math.round(c.activeMs / 1000);
   if (!c.id || c.usedVoice || !isValidSample({ words: c.words, seconds })) return;
+  onSample({ node_id: c.id, words: c.words, seconds });
   void createClient()
     .from("node_reading_times")
     .upsert(
@@ -66,22 +67,26 @@ export function useReadingTimer(opts: {
   node: ConceptNode;
   /** La voz está leyendo este nodo: el ritmo lo marca la voz, no el lector. */
   speaking: boolean;
+  /** Lectura válida recién terminada: permite ajustar los tiempos sin recargar. */
+  onSample: (s: NodeSample) => void;
 }) {
-  const { documentId, cloud, index, node, speaking } = opts;
+  const { documentId, cloud, index, node, speaking, onSample } = opts;
   const clock = useRef<Clock | null>(null);
   const nodeRef = useRef(node);
   const voiceRef = useRef(speaking);
+  const onSampleRef = useRef(onSample);
 
   useEffect(() => {
     nodeRef.current = node;
     voiceRef.current = speaking;
+    onSampleRef.current = onSample;
     if (speaking && clock.current) clock.current.usedVoice = true;
   });
 
   // Cambio de nodo: se cierra la lectura anterior (solo si fue al siguiente) y empieza otra.
   useEffect(() => {
     const prev = clock.current;
-    if (prev && index === prev.index + 1 && cloud) saveSample(documentId, prev);
+    if (prev && index === prev.index + 1 && cloud) saveSample(documentId, prev, onSampleRef.current);
     clock.current = startClock(index, nodeRef.current, cloud);
     if (voiceRef.current) clock.current.usedVoice = true;
   }, [index, documentId, cloud]);

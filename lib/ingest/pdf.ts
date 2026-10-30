@@ -1,10 +1,16 @@
 import { extractTextItems, getDocumentProxy, getMeta } from "unpdf";
+import { isPageNumberText, runningKey, stripRunningFromPages } from "./clean";
 import {
   HEADING_PREFIX,
-  NOTE_PREFIX,
   endsSentence,
+  hasNoteRef,
+  isNoteLabel,
   joinLines,
+  makeNote,
+  normalizeNoteLabel,
   normalizeSpaces,
+  parseNote,
+  splitNoteLabel,
 } from "./text";
 
 /** Contenido de una página: cuerpo del texto y notas al pie, por separado. */
@@ -72,7 +78,16 @@ function buildLines(items: Item[]): Line[] {
     g.sort((a, b) => a.x - b.x);
     let text = "";
     let lastEnd = -Infinity;
-    for (const it of g) {
+    const maxSize = Math.max(...g.map((i) => i.fontSize));
+    for (const [k, it] of g.entries()) {
+      // Número chico y elevado en medio del renglón = llamada de nota al pie.
+      // El primero del renglón no cuenta: es el número de la propia nota.
+      const ref = it.str.trim();
+      if (k > 0 && text && it.fontSize <= maxSize * 0.8 && isNoteLabel(ref)) {
+        text += `[^${normalizeNoteLabel(ref)}]`;
+        lastEnd = it.x + it.width;
+        continue;
+      }
       const gap = it.x - lastEnd;
       if (text && gap > it.fontSize * 0.15 && !text.endsWith(" ") && !it.str.startsWith(" ")) {
         text += " ";
@@ -91,16 +106,14 @@ function buildLines(items: Item[]): Line[] {
   }).filter((l) => l.text);
 }
 
-const headerKey = (t: string) => t.toLowerCase().replace(/[\d\s.\-–—|]+/g, " ").trim();
-const isPageNumber = (t: string) => /^[\s\-–—.]*([\divxlcdm]{1,6})[\s\-–—.]*$/i.test(t);
 
 /** Quita números de página y encabezados/pies que se repiten en muchas páginas. */
 function stripRunningHeads(pages: Line[][]): Line[][] {
   const counts = new Map<string, number>();
   for (const lines of pages) {
-    const edges = [lines[0], lines[1], lines[lines.length - 1], lines[lines.length - 2]];
+    const edges = [lines[0], lines[1], lines[2], lines[lines.length - 1], lines[lines.length - 2], lines[lines.length - 3]];
     for (const l of new Set(edges.filter(Boolean))) {
-      const k = headerKey(l.text);
+      const k = runningKey(l.text);
       if (k.length >= 3) counts.set(k, (counts.get(k) ?? 0) + 1);
     }
   }
@@ -108,10 +121,10 @@ function stripRunningHeads(pages: Line[][]): Line[][] {
 
   return pages.map((lines) =>
     lines.filter((l, i) => {
-      const atEdge = i <= 1 || i >= lines.length - 2;
+      const atEdge = i <= 2 || i >= lines.length - 3;
       if (!atEdge) return true;
-      if (isPageNumber(l.text)) return false;
-      return (counts.get(headerKey(l.text)) ?? 0) < threshold;
+      if (isPageNumberText(l.text)) return false;
+      return (counts.get(runningKey(l.text)) ?? 0) < threshold;
     })
   );
 }
@@ -150,11 +163,11 @@ function linesToPage(lines: Line[]): PageContent {
         body.push(HEADING_PREFIX + line.text);
       }
     } else if (kind === "note") {
-      const startsNote = /^(\d{1,3}|\*{1,3}|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)[\s.)]/.test(line.text);
-      if (prevKind === "note" && !startsNote && notes.length) {
+      const split = splitNoteLabel(line.text);
+      if (prevKind === "note" && !split.label && notes.length) {
         notes[notes.length - 1] = joinLines(notes[notes.length - 1], line.text);
       } else {
-        notes.push(NOTE_PREFIX + line.text);
+        notes.push(makeNote(split.label, split.text));
       }
     } else {
       let newParagraph = prevKind !== "body" || !prev || !body.length;
@@ -206,18 +219,23 @@ export async function analyzePdf(buffer: Uint8Array): Promise<PdfAnalysis> {
 
 /**
  * Une las páginas en un solo texto: un párrafo cortado por el cambio de página
- * se reconstruye, y las notas de cada página se ubican después del párrafo
- * donde termina esa página.
+ * se reconstruye, y cada nota se ubica justo después del párrafo que la cita
+ * (la numeración reinicia por página, así que se empareja dentro de su página).
+ * Una nota sin llamada en el texto queda al final de su página.
  */
-export function assemblePages(pages: PageContent[], firstPage = 1): PagedParagraph[] {
-  const out: PagedParagraph[] = [];
-  let pendingNotes: PagedParagraph[] = [];
+export function assemblePages(rawPages: PageContent[], firstPage = 1): PagedParagraph[] {
+  // Red de seguridad: números de página y encabezados que se hayan colado
+  // (sobre todo en lo transcripto con IA, que no ve el resto del libro).
+  const pages = stripRunningFromPages(rawPages);
+  const slots: { text: string; page: number | null; notes: PagedParagraph[] }[] = [];
   let lastBodyIndex = -1;
 
   pages.forEach((page, p) => {
     const pageNumber = firstPage + p;
+    const mine: number[] = [];
+
     page.body.forEach((para, i) => {
-      const prev = lastBodyIndex >= 0 ? out[lastBodyIndex].text : null;
+      const prev = lastBodyIndex >= 0 ? slots[lastBodyIndex].text : null;
       const continues =
         i === 0 &&
         prev !== null &&
@@ -226,18 +244,27 @@ export function assemblePages(pages: PageContent[], firstPage = 1): PagedParagra
         !endsSentence(prev);
 
       if (continues) {
-        out[lastBodyIndex] = { ...out[lastBodyIndex], text: joinLines(prev, para) };
-        return;
+        slots[lastBodyIndex].text = joinLines(prev, para);
+      } else {
+        slots.push({ text: para, page: pageNumber, notes: [] });
+        lastBodyIndex = slots.length - 1;
       }
-      if (pendingNotes.length) {
-        out.push(...pendingNotes);
-        pendingNotes = [];
-      }
-      out.push({ text: para, page: pageNumber });
-      lastBodyIndex = out.length - 1;
+      mine.push(lastBodyIndex);
     });
-    pendingNotes.push(...page.notes.map((text) => ({ text, page: pageNumber })));
+
+    const taken = new Set<string>();
+    for (const note of page.notes) {
+      const label = parseNote(note)?.label ?? null;
+      const target = label
+        ? mine.find((idx) => hasNoteRef(slots[idx].text, label) && !taken.has(`${idx}:${label}`))
+        : undefined;
+      if (label && target !== undefined) taken.add(`${target}:${label}`);
+      const entry = { text: note, page: pageNumber };
+      if (target !== undefined) slots[target].notes.push(entry);
+      else if (lastBodyIndex >= 0) slots[lastBodyIndex].notes.push(entry);
+      else slots.push({ ...entry, notes: [] });
+    }
   });
-  out.push(...pendingNotes);
-  return out;
+
+  return slots.flatMap((s) => [{ text: s.text, page: s.page }, ...s.notes]);
 }

@@ -32,7 +32,7 @@
 | ✅ F2-9 | Artículos como una sola pieza; reconstrucciones marcadas en escaneados; respuestas/notas guardadas y exportación PDF (2026-09-24) | docs/10 D13–D15. |
 | ✅ F2-13 | Tiempos de lectura que se ajustan a tu ritmo, en silencio (2026-10-30) | docs/10 D20. Pendiente: aplicar la migración 006 (si no se aplicó) y comprobar tras ~5 nodos leídos que el ⏱ cambia. |
 | ✅ F2-11 | Lectura en voz alta con la voz del navegador (2026-10-03) | docs/10 D18. Pendiente: que el dueño la pruebe en su compu y celular y diga si la voz alcanza. |
-| ✅ F2-14 | Diccionario de español + Haiku para errores de lectura en PDFs (2026-10-30) | docs/10 D21. Pendiente: probar con clave real reprocesando "Proceso y no proceso…" y mirar falsas alarmas; sumar términos propios a `LEXICON`. |
+| ✅ F2-14 | Diccionario de español + Haiku para errores de lectura en PDFs (2026-10-30) | docs/10 D23. Pendiente: probar con clave real reprocesando "Proceso y no proceso…" y mirar falsas alarmas; sumar términos propios a `LEXICON`. |
 | F2-12 | **Probar la revisión de errores de lectura (docs/10 D19)**: reprocesar "Proceso y no proceso…" y comprobar que "nevó" pasa a ⟦llevó⟧. Comparar `CLAUDE_MODEL` Opus / Sonnet / Haiku (errores hallados, falsas alarmas, costo real en console.anthropic.com) y elegir. Decidir si "noproceso" era "no-proceso". | Rama `ccr-fa681e5f-l6m34a`. Probado con dobles (sin clave en el entorno de Claude Code), falta la prueba real. |
 | F2-10 | Número de página en las referencias del banco exportado | Hoy la ubicación es capítulo · nodo. |
 

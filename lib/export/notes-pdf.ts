@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
+import { parseNote, stripNoteRefs } from "@/lib/ingest/text";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
 export interface ExportNode {
@@ -256,7 +257,7 @@ export async function buildNotesPdf(data: NotesExport): Promise<Uint8Array> {
 /** La oración del párrafo donde aparece el término (o el comienzo del párrafo). */
 export function quoteFor(term: string, paragraph: string | null): string | null {
   if (!paragraph) return null;
-  const clean = paragraph.replace(/^\[nota\]\s*/, "").replace(/^#\s*/, "").replace(/[⟦⟧]/g, "");
+  const clean = stripNoteRefs(parseNote(paragraph)?.text ?? paragraph).replace(/^#\s*/, "").replace(/[⟦⟧]/g, "");
   const sentences = clean.match(/[^.!?…]+[.!?…]+["»”')\]]*|[^.!?…]+$/g) ?? [clean];
   const hit = sentences.find((s) => s.toLowerCase().includes(term.toLowerCase()));
   const chosen = (hit ?? sentences[0]).trim();

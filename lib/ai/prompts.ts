@@ -36,7 +36,7 @@ REGLAS DE SEGMENTACIÓN
 - Cortá por unidad conceptual, no por extensión: un nodo desarrolla una idea, distinción o paso argumental. Apuntá a {TARGET} palabras. Si un argumento necesita más, puede superarlo; evitá nodos de menos de {TOO_SHORT} palabras salvo que haya un cambio de capítulo.
 - El fragmento puede terminar a mitad de un argumento: segmentá igual hasta el final (el último nodo se revisa en la siguiente tanda).
 - Los párrafos que empiezan con "# " son títulos del libro. Un título abre un nodo nuevo; nunca cierres un nodo con un título.
-- Los párrafos que empiezan con "[nota]" son notas al pie: pertenecen al nodo donde aparecen. Nunca empieces un nodo con una nota.
+- Los párrafos que empiezan con "[nota]" o "[nota N]" son notas al pie, y "[^N]" dentro de un párrafo es la llamada a esa nota: ambos pertenecen al nodo donde aparecen y no se tocan. Nunca empieces un nodo con una nota.
 - Las palabras entre ⟦ ⟧ son reconstrucciones de partes que se leían mal en el escaneo: tratálas como texto normal y no las uses como términos de glosario.
 - Marcá "omitir" en los rangos que no son para leer como argumento: índice, créditos editoriales, listas de abreviaturas, bibliografía, índices analíticos. Prólogos, introducciones y prefacios SÍ son lectura.
 
@@ -74,8 +74,10 @@ INSTRUCCIONES
 - Uní las palabras cortadas con guion al final de renglón ("repre-/sión" → "represión").
 - Separá el texto en párrafos tal como están en la página. Un párrafo que empieza en una página y sigue en la siguiente, dejalo cortado igual: se une después.
 - Títulos y subtítulos del libro van en "body" con el prefijo "# ".
-- Las notas al pie van en "notes", cada una empezando con su número o asterisco.
-- Omití encabezados repetidos de página (título del libro o capítulo arriba), números de página y marcas de digitalización.
+- Las llamadas de nota al pie (el numerito o asterisco elevado que el autor pone junto a una palabra) se escriben en el texto como [^N], pegadas a la palabra o signo que preceden, con el mismo número o asterisco de la nota. Ejemplo: "lo reprimido[^3] retorna". No dejes el número suelto sin marcar ni lo omitas.
+- Las notas al pie van en "notes", cada una empezando con su número o asterisco (el mismo de su llamada), seguido del texto. Ejemplo: "3 Cf. el capítulo anterior."
+- Omití todo lo que no es del autor y se repite página a página: encabezados y pies (título del libro, nombre del autor o del capítulo arriba o abajo), números de página en cualquier forma ("12", "- 12 -", "Página 12", "12 / 300", romanos como "xii") y marcas de digitalización. Si el número de página está pegado al encabezado ("12 EL YO Y EL ELLO"), omití todo el renglón.
+- Distinguí: el título de un capítulo que aparece UNA vez (en su primera página) sí es del autor y va con "# "; el mismo texto repetido arriba de cada página es encabezado y se omite.
 - Si una página está en blanco o solo tiene imágenes, devolvé listas vacías para esa página.
 
 PARTES QUE SE LEEN MAL (manchas, cortes, tinta corrida)
