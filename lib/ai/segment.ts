@@ -5,6 +5,7 @@ import { segmentSystem, segmentUserPrompt } from "./prompts";
 import type { NodeSize } from "@/lib/node-size";
 import { HEADING_PREFIX, NOTE_PREFIX } from "@/lib/ingest/text";
 import { applyCorrections } from "./corrections";
+import { spellcheckEnabled, spellcheckWindow } from "./spellcheck";
 
 const NodeSchema = z.object({
   start: z.number().int(),
@@ -81,8 +82,15 @@ export async function segmentWindow(
     .filter((n) => (seen.has(n.start) ? false : (seen.add(n.start), true)));
 
   const fixed = ctx.reviewReading
-    ? applyCorrections(paragraphs, corrections)
+    ? { ...applyCorrections(paragraphs, corrections) }
     : { paragraphs, applied: 0, rejected: 0 };
+
+  // Segunda pasada: diccionario + modelo chico sobre palabras que no existen (docs/10 D21).
+  if (ctx.reviewReading && spellcheckEnabled()) {
+    const spell = await spellcheckWindow(fixed.paragraphs);
+    fixed.paragraphs = spell.paragraphs;
+    fixed.applied += spell.applied;
+  }
 
   if (!clean.length) {
     return {

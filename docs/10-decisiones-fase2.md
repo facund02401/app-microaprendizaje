@@ -134,3 +134,13 @@
 - **Código:** `lib/reading-pace.ts` (reglas puras), `lib/reading-pace-server.ts` (carga), `components/reader/useReadingTimer.ts` (medidor).
 - **Límite conocido:** quien lee sin tocar nada más de 120 s seguidos queda subcontado y el ritmo estimado sale algo más rápido. Si pasa, subir más `IDLE_PAUSE_SECONDS` (hoy 120 s).
 - **Revertir:** quitar `useReadingTimer` de `ReaderView`; los tiempos vuelven al 80 si se borran las filas de `node_reading_times`.
+
+### D21 — Diccionario + Haiku para errores de lectura *(pedido del dueño, 2026-10-30)*
+- **Problema:** la revisión de D19 (dentro de la llamada de Opus) deja pasar errores. Un diccionario encuentra mejor las palabras que no existen.
+- **Qué hace:** al preparar una parte de un PDF, después de la revisión de D19, el código pasa el texto por el diccionario de español (`dictionary-es` + `nspell`, gratis, sin red) y arma la lista de palabras que no existen. Haiku recibe solo esas frases (no el libro) y decide cuáles son errores claros. Código: `lib/ai/spell-suspects.ts` (lógica pura), `lib/ai/spellcheck.ts` (Haiku).
+- **Texto intacto:** igual que D19: Haiku no devuelve texto, el código aplica `applyCorrections` con sus guardas y queda marcado `⟦…⟧`. Si Haiku falla, la ingesta sigue sin corregir.
+- **Qué no se revisa:** palabras con mayúscula inicial (nombres, sustantivos alemanes), siglas, palabras con ä/ö/ß/k/w, términos de psicoanálisis en `LEXICON`, palabras que se repiten 4+ veces en la ventana (suelen ser términos del autor), títulos, notas y lo ya marcado. Tope: 150 sospechosas por ventana.
+- **Costo:** del orden de 1 a 5 centavos de dólar por libro (solo frases sospechosas, tandas de 50).
+- **Límite conocido:** una palabra válida pero equivocada ("nevó" por "llevó") no la ve el diccionario; esa sigue dependiendo de D19. Si falta un término técnico propio y marca falsas alarmas, sumarlo a `LEXICON`.
+- **Apagar:** `CLAUDE_SPELLCHECK=off` (solo esta pasada) o `CLAUDE_REVIEW_READING=off` (ambas), en Vercel + Redeploy. Modelo: `CLAUDE_SPELL_MODEL` (por defecto el mismo Haiku de `CLAUDE_CONCEPT_MODEL`).
+- **Verificado (2026-10-30):** `lint`, `tsc` y `build` sin errores; el diccionario queda incluido en el despliegue de `/api/documents/[id]/step`; prueba con texto ficticio ("inconscinete"→"inconsciente", "rnadre"→"madre"). Falta la prueba real con clave de Anthropic.
