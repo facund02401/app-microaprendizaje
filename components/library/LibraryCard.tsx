@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { EditDocumentInfo } from "@/components/library/EditDocumentInfo";
 import { DeleteDocument } from "@/components/library/DeleteDocument";
+import { formatMinutes } from "@/lib/ingest/estimate";
+import { DEFAULT_READING_WPM } from "@/lib/reading-pace";
 import { statusLabel, type SectionCounts } from "@/lib/documents";
 import { cn } from "@/lib/utils";
 import type { DocumentRow } from "@/types";
@@ -12,7 +14,16 @@ const TYPE_LABEL: Record<DocumentRow["file_type"], string> = {
   txt: "Texto",
 };
 
-export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: SectionCounts }) {
+interface Props {
+  doc: DocumentRow;
+  counts: SectionCounts;
+  /** Ritmo del lector en palabras por minuto, para el tiempo aproximado. */
+  wpm?: number;
+}
+
+export function LibraryCard({ doc, counts, wpm = DEFAULT_READING_WPM }: Props) {
+  // Solo textos de una parte (artículos): en libros largos un total sería un contador de deuda (regla 3).
+  const approxMinutes = counts.total === 1 && doc.word_count ? doc.word_count / wpm : null;
   const readable = doc.total_nodes > 0;
   const processing = doc.status === "extracting" || doc.status === "segmenting";
   const href = readable ? `/reader/${doc.id}` : `/dashboard/documents/${doc.id}`;
@@ -37,7 +48,11 @@ export function LibraryCard({ doc, counts }: { doc: DocumentRow; counts: Section
         </div>
         {doc.author && <p className="mb-0.5 font-sans text-[14px]">{doc.author}</p>}
         <p className="font-sans text-[13px] text-muted-foreground">
-          {[TYPE_LABEL[doc.file_type], doc.page_count ? `${doc.page_count} págs.` : null]
+          {[
+            TYPE_LABEL[doc.file_type],
+            doc.page_count ? `${doc.page_count} págs.` : null,
+            approxMinutes ? `~${formatMinutes(approxMinutes)} de lectura` : null,
+          ]
             .filter(Boolean)
             .join(" · ")}
         </p>

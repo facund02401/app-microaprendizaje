@@ -5,6 +5,7 @@ import { parseNodeSize, type NodeSize } from "@/lib/node-size";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { LibraryCard } from "@/components/library/LibraryCard";
 import { countSections } from "@/lib/documents";
+import { loadReadingWpm } from "@/lib/reading-pace-server";
 import { mockBook } from "@/lib/mock-data";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getUser } from "@/lib/supabase/server";
@@ -17,6 +18,7 @@ export default async function Dashboard() {
   let documents: (DocumentRow & { document_sections?: { status: string }[] })[] = [];
   let signedIn = false;
   let nodeSize: NodeSize = "short";
+  let wpm: number | undefined;
 
   if (supabaseConfigured) {
     const { supabase, user } = await getUser();
@@ -28,6 +30,7 @@ export default async function Dashboard() {
         .select("*, document_sections(status)")
         .order("created_at", { ascending: false });
       documents = (data ?? []) as typeof documents;
+      wpm = await loadReadingWpm(supabase);
     }
   }
 
@@ -57,7 +60,7 @@ export default async function Dashboard() {
           <ul className="space-y-3">
             {documents.map((doc) => (
               <li key={doc.id}>
-                <LibraryCard doc={doc} counts={countSections(doc.document_sections)} />
+                <LibraryCard doc={doc} counts={countSections(doc.document_sections)} wpm={wpm} />
               </li>
             ))}
 
