@@ -20,7 +20,7 @@ export const MIN_SAMPLE_SECONDS = 40;
 /** Nodos muy cortos (p. ej. el último de un capítulo) dan mediciones ruidosas. */
 export const MIN_SAMPLE_WORDS = 100;
 /** Sin actividad (scroll, mouse, teclado) durante este lapso, el reloj se pausa. */
-export const IDLE_PAUSE_SECONDS = 60;
+export const IDLE_PAUSE_SECONDS = 120;
 
 /** Cuántas lecturas recientes se miran, y cuántas hacen falta para confiar del todo. */
 export const RECENT_SAMPLES = 10;
