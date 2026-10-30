@@ -5,14 +5,16 @@ interface Props {
   book: Book;
   node: ConceptNode;
   totalNodes: number;
+  /** Ritmo del lector en palabras por minuto (se ajusta en silencio). */
+  wpm?: number;
 }
 
 /**
  * Status bar inferior (docs/07 §1.3): monoespaciada, discreta.
  * Progreso del libro + tiempo estimado de la micro-dosis.
  */
-export function StatusBar({ book, node, totalNodes }: Props) {
-  const minutes = estimatedMinutes(node);
+export function StatusBar({ book, node, totalNodes, wpm }: Props) {
+  const minutes = estimatedMinutes(node, wpm);
 
   return (
     <footer

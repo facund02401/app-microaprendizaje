@@ -1,3 +1,5 @@
+import { DEFAULT_READING_WPM, countWords } from "@/lib/reading-pace";
+
 export type NodeStatus = "completed" | "current" | "locked";
 
 export interface GlossaryTerm {
@@ -67,10 +69,9 @@ export function flatNodes(book: Book): { chapter: Chapter; node: ConceptNode }[]
   );
 }
 
-export function estimatedMinutes(node: ConceptNode): number {
-  const words = node.excerptParagraphs.join(" ").split(/\s+/).length;
-  // Lectura analítica densa: ~80 palabras por minuto (docs/02)
-  return Math.max(1, Math.round(words / 80));
+/** `wpm`: ritmo del lector (lib/reading-pace.ts); por defecto, lectura analítica densa (docs/02). */
+export function estimatedMinutes(node: ConceptNode, wpm = DEFAULT_READING_WPM): number {
+  return Math.max(1, Math.round(countWords(node.excerptParagraphs) / wpm));
 }
 
 /** Documento subido por el lector (tabla documents en Supabase). */

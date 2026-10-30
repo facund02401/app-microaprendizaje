@@ -11,12 +11,13 @@ interface Props {
   onToggle: (idx: number) => void;
   onSelectAll: (all: boolean) => void;
   model: string;
+  wpm?: number;
   disabled?: boolean;
   workingOn: number | null;
 }
 
 /** Índice del documento con casillas: el lector elige qué partes preparar con IA. */
-export function SectionIndex({ sections, selected, onToggle, onSelectAll, model, disabled, workingOn }: Props) {
+export function SectionIndex({ sections, selected, onToggle, onSelectAll, model, wpm, disabled, workingOn }: Props) {
   const selectable = sections.filter((s) => s.status !== "done" && s.status !== "processing");
   const allSelected = selectable.length > 0 && selectable.every((s) => selected.has(s.idx));
 
@@ -42,7 +43,7 @@ export function SectionIndex({ sections, selected, onToggle, onSelectAll, model,
         {sections.map((s) => {
           const locked = s.status === "done" || s.status === "processing";
           const checked = locked || selected.has(s.idx);
-          const est = estimateSection(model, s);
+          const est = estimateSection(model, s, wpm);
           const pages =
             s.page_start != null
               ? s.page_start === s.page_end

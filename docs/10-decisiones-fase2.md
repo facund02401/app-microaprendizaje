@@ -124,3 +124,13 @@
 - **Límite conocido:** la palabra original ("nevó") no se guarda; para compararla hay que mirar el PDF.
 - **Apagar:** variable `CLAUDE_REVIEW_READING=off` en Vercel + Redeploy. Solo afecta partes que se preparen después.
 - **Pendiente de medir:** cuántos errores reales detecta y cuántas falsas alarmas da cada modelo (Opus / Sonnet / Haiku vía `CLAUDE_MODEL`) y el costo real. Ver TODO.md.
+
+### D20 — Tiempos de lectura que se ajustan a tu ritmo *(pedido del dueño, 2026-10-30)*
+- **Qué hace:** el "⏱ N min" (barra de estado, índice de partes, "¿Seguimos con…?") deja de usar 80 palabras por minuto fijas y usa el ritmo real del lector, medido en silencio. **Invisible:** no hay estadísticas, avisos ni pantallas; solo cambia el número de minutos. Nunca condiciona el acceso (reglas 3 y 6).
+- **Qué se mide:** al pasar de un nodo al **siguiente** (botón o flecha), segundos de lectura *activa* del nodo anterior. El reloj corre solo con la pestaña visible y actividad (scroll, mouse, teclado, toque) en los últimos 60 s, y se pausa mientras se escribe en la caja de notas. No cuenta si se usó la lectura en voz alta, si se saltó con el explorador o con "anterior", ni las relecturas (la clave `(user_id, node_id)` solo guarda la primera vez).
+- **Qué se descarta (`lib/reading-pace.ts`):** menos de 40 s, nodos de menos de 100 palabras, y ritmos fuera de 25–300 palabras por minuto (800 palabras en 1 minuto es pasar la vista; 240 en 1 minuto es lector rápido pero posible).
+- **Cómo se calcula:** mediana de las últimas 10 lecturas válidas, global del lector (no por libro). Con menos de 5 lecturas se mezcla con el 80 de partida (con 1 lectura pesa 10 %, con 4 pesa 40 %); tope 40–200. Los umbrales se revalidan al calcular, así que se pueden cambiar sin perder historia.
+- **Datos:** tabla `node_reading_times` (migración `20261030_006_ritmo_lectura.sql`, RLS como el resto). Si falla guardar o leer, se usa 80 y la lectura no se entera.
+- **Código:** `lib/reading-pace.ts` (reglas puras), `lib/reading-pace-server.ts` (carga), `components/reader/useReadingTimer.ts` (medidor).
+- **Límite conocido:** quien lee sin tocar nada más de 60 s seguidos queda subcontado y el ritmo estimado sale algo más rápido. Si pasa, subir `IDLE_PAUSE_SECONDS`.
+- **Revertir:** quitar `useReadingTimer` de `ReaderView`; los tiempos vuelven al 80 si se borran las filas de `node_reading_times`.

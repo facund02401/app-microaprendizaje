@@ -33,6 +33,7 @@ import { EMPTY_RESPONSE } from "@/types";
 import type { Book, NodeResponse, SectionRow } from "@/types";
 import { syncBank } from "@/lib/concept-bank";
 import { syncHighlights } from "@/lib/highlights";
+import { useReadingTimer } from "@/components/reader/useReadingTimer";
 import { ExportLink } from "@/components/reader/ExportLink";
 
 interface Props {
@@ -41,6 +42,8 @@ interface Props {
   processing?: { sections: SectionRow[]; model: string; aiReady: boolean };
   /** Respuestas y notas ya guardadas en la cuenta, por id de nodo. */
   responses?: Record<string, NodeResponse>;
+  /** Ritmo del lector (palabras por minuto): ajusta en silencio los tiempos estimados. */
+  wpm?: number;
 }
 
 /** Punto de corte escritorio/móvil: <768px el explorador es cajón flotante. */
@@ -57,7 +60,7 @@ function subscribeMq(onChange: () => void) {
  * En móvil (<768px) el explorador nace cerrado y se abre como cajón sobre
  * el texto, con fondo oscurecido que lo cierra al tocarlo.
  */
-export function ReaderView({ book, processing, responses: initialResponses }: Props) {
+export function ReaderView({ book, processing, responses: initialResponses, wpm }: Props) {
   const cloud = book.source === "cloud";
   const [responses, setResponses] = useState<Record<string, NodeResponse>>(initialResponses ?? {});
 
@@ -174,6 +177,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
 
   const { chapter, node } = nodes[current];
   const speaking = reading && reading.key === nodeKey(node) ? reading.paragraph : null;
+  useReadingTimer({ documentId: book.documentId, cloud, index: current, node, speaking: speaking !== null });
   // Último nodo preparado de este capítulo: se ofrece exportar sus apuntes.
   const chapterEnds = current === total - 1 || nodes[current + 1].chapter.id !== chapter.id;
 
@@ -341,6 +345,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
                 position={node.position}
                 nearEnd={current >= total - 3}
                 atEnd={current === total - 1}
+                wpm={wpm}
               />
             )}
 
@@ -357,7 +362,7 @@ export function ReaderView({ book, processing, responses: initialResponses }: Pr
         </main>
       </div>
 
-      <StatusBar book={book} node={node} totalNodes={total} />
+      <StatusBar book={book} node={node} totalNodes={total} wpm={wpm} />
 
       {/* Prototipo v1.2: selección de texto → ⊕ → banco (ver TODO.md) */}
       <SelectionSave node={node} book={book} chapter={chapter} />
