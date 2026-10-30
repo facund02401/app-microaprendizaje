@@ -82,7 +82,7 @@ Queda un ícono "Nodos" que abre la app a pantalla completa. La primera vez te p
 
 - **Nunca reescribe al autor.** Claude solo indica en qué párrafo empieza cada nodo, y la app corta el texto original. Además: título del nodo, hasta 3 términos de glosario y una pregunta de anclaje.
 - **Páginas escaneadas:** Claude las "lee" como imagen y las transcribe literalmente (de a 5 páginas).
-- Índices, créditos y bibliografía se omiten de los nodos. Los títulos del libro se ven como subtítulos y las notas al pie en letra más chica, debajo del párrafo donde aparecen.
+- Índices, créditos y bibliografía se omiten de los nodos. Los títulos del libro se ven como subtítulos y las notas al pie con número se abren al tocar el número dentro del texto (las que no tienen llamada se ven en letra más chica, debajo del párrafo).
 
 ## 4. Costos
 

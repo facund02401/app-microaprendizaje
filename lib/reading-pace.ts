@@ -6,6 +6,8 @@
  * Módulo puro (sin React ni red) para poder probar las reglas por separado.
  */
 
+import { isNote } from "@/lib/ingest/text";
+
 /** Lectura analítica densa (docs/02): punto de partida y fallback. */
 export const DEFAULT_READING_WPM = 80;
 
@@ -38,7 +40,7 @@ export interface NodeSample extends PaceSample {
 }
 
 export function countWords(paragraphs: string[]): number {
-  return paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
+  return paragraphs.filter((p) => !isNote(p)).join(" ").split(/\s+/).filter(Boolean).length;
 }
 
 export function sampleWpm(s: PaceSample): number {
