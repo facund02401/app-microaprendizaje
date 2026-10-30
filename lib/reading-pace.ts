@@ -32,6 +32,11 @@ export interface PaceSample {
   seconds: number;
 }
 
+/** Una lectura guardada: se identifica el nodo para no contarlo dos veces. */
+export interface NodeSample extends PaceSample {
+  node_id: string;
+}
+
 export function countWords(paragraphs: string[]): number {
   return paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
 }
