@@ -217,11 +217,6 @@ export async function buildNotesPdf(data: NotesExport): Promise<Uint8Array> {
         w.text("Mi respuesta", { size: 8.5, color: MUTED });
         w.text(node.answer.trim(), { size: 11 });
       }
-      if (node.note.trim()) {
-        w.space(4);
-        w.text("Mis notas", { size: 8.5, color: MUTED });
-        w.text(node.note.trim(), { size: 11 });
-      }
       if (node.highlights.length) {
         w.space(4);
         w.text("Pasajes subrayados", { size: 8.5, color: MUTED });
@@ -229,6 +224,11 @@ export async function buildNotesPdf(data: NotesExport): Promise<Uint8Array> {
           w.space(2);
           w.text(passage, { size: 10.5, indent: 12, marker: true });
         }
+      }
+      if (node.note.trim()) {
+        w.space(4);
+        w.text("Mis notas", { size: 8.5, color: MUTED });
+        w.text(node.note.trim(), { size: 11 });
       }
     }
   }
