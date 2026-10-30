@@ -131,6 +131,7 @@
 - **Qué se descarta (`lib/reading-pace.ts`):** menos de 40 s, nodos de menos de 100 palabras, y ritmos fuera de 25–300 palabras por minuto (800 palabras en 1 minuto es pasar la vista; 240 en 1 minuto es lector rápido pero posible).
 - **Cómo se calcula:** mediana de las últimas 10 lecturas válidas, global del lector (no por libro). Con menos de 5 lecturas se mezcla con el 80 de partida (con 1 lectura pesa 10 %, con 4 pesa 40 %); tope 40–200. Los umbrales se revalidan al calcular, así que se pueden cambiar sin perder historia.
 - **Datos:** tabla `node_reading_times` (migración `20261030_006_ritmo_lectura.sql`, RLS como el resto). Si falla guardar o leer, se usa 80 y la lectura no se entera.
+- **Se actualiza al pasar de nodo:** las lecturas recientes viajan al lector y, al guardar una lectura válida, el ritmo se recalcula en el momento (sin recargar). Cada nodo cuenta una sola vez.
 - **Código:** `lib/reading-pace.ts` (reglas puras), `lib/reading-pace-server.ts` (carga), `components/reader/useReadingTimer.ts` (medidor).
 - **Límite conocido:** quien lee sin tocar nada más de 120 s seguidos queda subcontado y el ritmo estimado sale algo más rápido. Si pasa, subir más `IDLE_PAUSE_SECONDS` (hoy 120 s).
 - **Revertir:** quitar `useReadingTimer` de `ReaderView`; los tiempos vuelven al 80 si se borran las filas de `node_reading_times`.
