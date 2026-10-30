@@ -9,6 +9,8 @@
  * tocar el número (docs/10 D21).
  */
 
+import { cleanTextLines } from "./clean";
+
 export const HEADING_PREFIX = "# ";
 export const NOTE_PREFIX = "[nota] ";
 
@@ -131,7 +133,9 @@ export function endsSentence(text: string): boolean {
 
 /** Texto plano (.txt): párrafos separados por línea en blanco. */
 export function plainTextToParagraphs(raw: string): string[] {
-  const text = raw.replace(/\r\n?/g, "\n");
+  // Números de página y encabezados repetidos se quitan por renglón, con el
+  // contexto de todo el texto (docs/10 D22).
+  const text = cleanTextLines(raw.replace(/\r\n?/g, "\n").split("\n")).join("\n");
   const blocks = text.split(/\n\s*\n/);
   // Archivos sin líneas en blanco: cada renglón es un párrafo.
   const source = blocks.length > 1 ? blocks : text.split("\n");

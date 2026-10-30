@@ -1,4 +1,5 @@
 import { parse, type HTMLElement, type Node, NodeType } from "node-html-parser";
+import { cleanFlatParagraphs } from "./clean";
 import {
   HEADING_PREFIX,
   isNoteLabel,
@@ -22,6 +23,12 @@ function hasBlockChild(el: HTMLElement): boolean {
   );
 }
 
+/** Marcas de salto de página de los EPUB (traen el número de página como texto). */
+function isPageBreak(el: HTMLElement): boolean {
+  const marker = `${el.getAttribute("epub:type") ?? ""} ${el.getAttribute("role") ?? ""}`.toLowerCase();
+  return /pagebreak/.test(marker);
+}
+
 function isNote(el: HTMLElement): boolean {
   const marker = `${el.getAttribute("epub:type") ?? ""} ${el.getAttribute("role") ?? ""} ${el.getAttribute("class") ?? ""} ${el.id ?? ""}`.toLowerCase();
   return /footnote|endnote|rearnote|doc-footnote|doc-endnote/.test(marker);
@@ -33,7 +40,7 @@ function inlineText(node: Node): string {
   if (node.nodeType !== NodeType.ELEMENT_NODE) return "";
   const el = node as HTMLElement;
   const tag = el.tagName?.toLowerCase() ?? "";
-  if (SKIP.has(tag)) return "";
+  if (SKIP.has(tag) || isPageBreak(el)) return "";
   const text = el.textContent.trim();
   const link = tag === "a" && (el.getAttribute("href") ?? "").startsWith("#");
   if (link && /^[↑↩↵⏎^]+$/.test(text)) return "";
@@ -50,7 +57,7 @@ export function htmlToParagraphs(html: string): string[] {
 
   function walk(el: HTMLElement, inNote: boolean) {
     const tag = el.tagName?.toLowerCase() ?? "";
-    if (SKIP.has(tag)) return;
+    if (SKIP.has(tag) || isPageBreak(el)) return;
     const note = inNote || isNote(el);
 
     if (BLOCKS.has(tag) && !hasBlockChild(el)) {
@@ -74,5 +81,5 @@ export function htmlToParagraphs(html: string): string[] {
   }
 
   walk(root, false);
-  return placeNotes(out);
+  return placeNotes(cleanFlatParagraphs(out));
 }

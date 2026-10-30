@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import { GlossaryTooltip } from "@/components/reader/GlossaryTooltip";
 import { HEADING_PREFIX, isNote, noteRefs, parseNote } from "@/lib/ingest/text";
+import { isStrayPageNumber } from "@/lib/ingest/clean";
 import { NoteRef } from "@/components/reader/NoteRef";
 import { ReconstructedMark } from "@/components/reader/ReconstructedMark";
 import type { Chapter, ConceptNode } from "@/types";
@@ -67,7 +68,8 @@ function renderParagraphs(node: ConceptNode, book: Book, chapter: Chapter, speak
   });
 
   return paras.map((paragraph, pIndex) => {
-    if (shown.has(pIndex)) return null;
+    // Número de página que se coló al preparar el texto (docs/10 D22): no es del autor.
+    if (shown.has(pIndex) || isStrayPageNumber(paragraph)) return null;
     if (paragraph.startsWith(HEADING_PREFIX)) {
       return (
         <h3

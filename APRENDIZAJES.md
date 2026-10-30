@@ -138,3 +138,10 @@
 - **Qué se hizo:** convención `[^n]` + `[nota n]`, detección de superíndices en PDF, emparejado por página (`assemblePages`) y por orden (`placeNotes`), globito `NoteRef` en el lector. Archivos: `lib/ingest/{text,pdf,html}.ts`, `lib/ai/{ocr,prompts,segment}.ts`, `components/reader/{NoteRef,ReaderTextDisplay}.tsx`.
 - **Cómo se verificó:** `lint` y `build` sin errores; PDF de prueba generado con pdf-lib (superíndices + notas) pasa por `analyzePdf`/`assemblePages` y queda cada nota tras su párrafo; HTML de Word de ejemplo; en el navegador, el nodo 1 de "texto de prueba" (mock) abre la nota al tocar el 1. **Sin probar:** un escaneado real (depende de que Claude ponga `[^N]`) y un PDF/EPUB real del dueño.
 - **Lección práctica:** en este entorno `node_modules` puede faltar: `npm ci` primero. Para probar módulos sueltos: `NODE_PATH=$PWD/node_modules npx tsx script.ts`.
+
+### 2026-10-30 — Números de página y encabezados en el texto (docs/10 D22)
+- **Contexto:** se colaban números de página y encabezados en los nodos.
+- **Causas encontradas:** el limpiador de PDF solo miraba 2 renglones por borde, su regla de "número de página" aceptaba palabras como "Mil" o "Civil" (mezclaba dígitos y letras romanas), y quitaba todos los dígitos de la clave, con lo que "Capítulo 3", "Capítulo 4"… parecían el mismo encabezado en textos cortos. Escaneados y .txt no tenían limpieza propia.
+- **Qué se hizo:** `lib/ingest/clean.ts` y su uso en `pdf.ts`, `html.ts`, `text.ts`, prompt de OCR, lector y voz alta.
+- **Cómo se verificó:** `lint`/`build` sin errores; prueba con páginas inventadas (encabezado alterno + número + capítulos únicos: se quitan los dos primeros y quedan los capítulos), .txt con encabezado repetido y números sueltos, y HTML con salto de página de EPUB. **Sin probar** con un PDF/escaneado real del dueño.
+- **Lección:** al detectar repeticiones, nunca normalizar tanto la clave que dos títulos distintos (capítulos) colapsen en uno; y toda regla de "esto no es del autor" debe ser conservadora: ante la duda, el texto queda.

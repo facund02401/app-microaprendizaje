@@ -142,3 +142,13 @@
 - **Sin pareja:** una llamada sin nota se ve como número tenue; una nota sin llamada sigue como bloque en letra chica. Lo ya preparado (`[nota] …`) se ve igual que antes.
 - **Además:** las notas no cuentan en los minutos estimados; la voz alta las salta y no lee los números.
 - **Alcance:** solo lo que se prepare después. Sin migración. Para rehacer un libro viejo hay que volver a prepararlo.
+
+### D22 — Números de página y encabezados fuera del texto *(pedido del dueño, 2026-10-30)*
+- **Problema:** a veces se colaban números de página, encabezados y pies ("Obras completas · Freud", "Capítulo II") dentro de los nodos. El limpiador anterior solo miraba 2 renglones por borde de página, confundía palabras como "Mil" con romanos, y no cubría escaneados ni .txt.
+- **Dónde se limpia (`lib/ingest/clean.ts`, función pura):**
+  1. **PDF con texto** (`pdf.ts`): mira 3 renglones por borde; quita números de página (`12`, `- 12 -`, `Página 12`, `12 / 300`, romanos en minúscula) y encabezados que se repiten en ≥ 3 páginas (o 15 %). La clave ignora el número de página pegado al encabezado, así que sirve para encabezados alternos par/impar; un "Capítulo 3" suelto conserva su número y no se confunde con un encabezado.
+  2. **Escaneados:** el prompt de OCR ahora lista las formas de número y encabezado a omitir y distingue el título de capítulo (una vez) del encabezado (repetido). Además, al armar la sección (`assemblePages`) se pasa la misma limpieza sobre las páginas ya transcriptas, con la vista de todo el bloque.
+  3. **Word/EPUB:** se ignoran las marcas de salto de página del EPUB (`epub:type="pagebreak"`) y se quitan párrafos que son solo un número o un renglón corto repetido ≥ 4 veces.
+  4. **.txt:** por renglón, con contexto de todo el texto. Un número suelto en su renglón solo se quita si viene tras un punto o una línea en blanco ("hasta el / 20 / de mayo" se respeta).
+  5. **Lector y voz alta:** ocultan los párrafos que son solo un número de página, aunque ya estén guardados. Es solo visual; no se cambia lo guardado.
+- **Límites conocidos:** un número de página a mitad de oración con líneas en blanco alrededor en un .txt corta el párrafo en dos; un encabezado de una sola palabra con el número pegado ("FREUD 45") no se reconoce; un título de capítulo repetido arriba de ≥ 3 páginas se tomaría por encabezado. Lo ya preparado se corrige en el lector (solo números sueltos); para el resto hay que volver a preparar el libro.

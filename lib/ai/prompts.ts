@@ -76,7 +76,8 @@ INSTRUCCIONES
 - Títulos y subtítulos del libro van en "body" con el prefijo "# ".
 - Las llamadas de nota al pie (el numerito o asterisco elevado que el autor pone junto a una palabra) se escriben en el texto como [^N], pegadas a la palabra o signo que preceden, con el mismo número o asterisco de la nota. Ejemplo: "lo reprimido[^3] retorna". No dejes el número suelto sin marcar ni lo omitas.
 - Las notas al pie van en "notes", cada una empezando con su número o asterisco (el mismo de su llamada), seguido del texto. Ejemplo: "3 Cf. el capítulo anterior."
-- Omití encabezados repetidos de página (título del libro o capítulo arriba), números de página y marcas de digitalización.
+- Omití todo lo que no es del autor y se repite página a página: encabezados y pies (título del libro, nombre del autor o del capítulo arriba o abajo), números de página en cualquier forma ("12", "- 12 -", "Página 12", "12 / 300", romanos como "xii") y marcas de digitalización. Si el número de página está pegado al encabezado ("12 EL YO Y EL ELLO"), omití todo el renglón.
+- Distinguí: el título de un capítulo que aparece UNA vez (en su primera página) sí es del autor y va con "# "; el mismo texto repetido arriba de cada página es encabezado y se omite.
 - Si una página está en blanco o solo tiene imágenes, devolvé listas vacías para esa página.
 
 PARTES QUE SE LEEN MAL (manchas, cortes, tinta corrida)

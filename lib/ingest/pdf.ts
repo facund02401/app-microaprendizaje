@@ -1,4 +1,5 @@
 import { extractTextItems, getDocumentProxy, getMeta } from "unpdf";
+import { isPageNumberText, runningKey, stripRunningFromPages } from "./clean";
 import {
   HEADING_PREFIX,
   endsSentence,
@@ -105,16 +106,14 @@ function buildLines(items: Item[]): Line[] {
   }).filter((l) => l.text);
 }
 
-const headerKey = (t: string) => t.toLowerCase().replace(/[\d\s.\-–—|]+/g, " ").trim();
-const isPageNumber = (t: string) => /^[\s\-–—.]*([\divxlcdm]{1,6})[\s\-–—.]*$/i.test(t);
 
 /** Quita números de página y encabezados/pies que se repiten en muchas páginas. */
 function stripRunningHeads(pages: Line[][]): Line[][] {
   const counts = new Map<string, number>();
   for (const lines of pages) {
-    const edges = [lines[0], lines[1], lines[lines.length - 1], lines[lines.length - 2]];
+    const edges = [lines[0], lines[1], lines[2], lines[lines.length - 1], lines[lines.length - 2], lines[lines.length - 3]];
     for (const l of new Set(edges.filter(Boolean))) {
-      const k = headerKey(l.text);
+      const k = runningKey(l.text);
       if (k.length >= 3) counts.set(k, (counts.get(k) ?? 0) + 1);
     }
   }
@@ -122,10 +121,10 @@ function stripRunningHeads(pages: Line[][]): Line[][] {
 
   return pages.map((lines) =>
     lines.filter((l, i) => {
-      const atEdge = i <= 1 || i >= lines.length - 2;
+      const atEdge = i <= 2 || i >= lines.length - 3;
       if (!atEdge) return true;
-      if (isPageNumber(l.text)) return false;
-      return (counts.get(headerKey(l.text)) ?? 0) < threshold;
+      if (isPageNumberText(l.text)) return false;
+      return (counts.get(runningKey(l.text)) ?? 0) < threshold;
     })
   );
 }
@@ -224,7 +223,10 @@ export async function analyzePdf(buffer: Uint8Array): Promise<PdfAnalysis> {
  * (la numeración reinicia por página, así que se empareja dentro de su página).
  * Una nota sin llamada en el texto queda al final de su página.
  */
-export function assemblePages(pages: PageContent[], firstPage = 1): PagedParagraph[] {
+export function assemblePages(rawPages: PageContent[], firstPage = 1): PagedParagraph[] {
+  // Red de seguridad: números de página y encabezados que se hayan colado
+  // (sobre todo en lo transcripto con IA, que no ve el resto del libro).
+  const pages = stripRunningFromPages(rawPages);
   const slots: { text: string; page: number | null; notes: PagedParagraph[] }[] = [];
   let lastBodyIndex = -1;
 
