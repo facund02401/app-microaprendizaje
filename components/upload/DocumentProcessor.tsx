@@ -18,6 +18,8 @@ interface Props {
   initialSections: SectionRow[];
   model: string;
   aiReady: boolean;
+  /** Ritmo del lector en palabras por minuto, para el tiempo de lectura. */
+  wpm?: number;
 }
 
 const selectedFrom = (sections: SectionRow[]) =>
@@ -27,7 +29,7 @@ const selectedFrom = (sections: SectionRow[]) =>
 const initialSelection = (sections: SectionRow[]) =>
   sections.length === 1 ? new Set([sections[0].idx]) : selectedFrom(sections);
 
-export function DocumentProcessor({ initial, initialSections, model, aiReady }: Props) {
+export function DocumentProcessor({ initial, initialSections, model, aiReady, wpm }: Props) {
   const router = useRouter();
   const p = useProcessing(initial.id, { document: initial, sections: initialSections });
   const doc = p.doc ?? initial;
@@ -57,9 +59,9 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
   const toAdd = sections.filter((s) => selected.has(s.idx) && s.status === "available").map((s) => s.idx);
   const toRemove = sections.filter((s) => !selected.has(s.idx) && s.status === "queued").map((s) => s.idx);
   const dirty = toAdd.length + toRemove.length > 0;
-  const selectionEstimate = sumEstimates(pendingSelected.map((s) => estimateSection(model, s)));
+  const selectionEstimate = sumEstimates(pendingSelected.map((s) => estimateSection(model, s, wpm)));
   const first = pendingSelected[0];
-  const firstEstimate = first ? estimateSection(model, first) : null;
+  const firstEstimate = first ? estimateSection(model, first, wpm) : null;
   const working = sections.find((s) => s.idx === p.workingOn) ?? sections.find((s) => s.status === "processing");
 
   function toggle(idx: number) {
@@ -140,7 +142,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
 
   const single = sections.length === 1;
   const hasIndex = sections.length > 1 && !analyzing;
-  const singleEstimate = single ? estimateSection(model, sections[0]) : null;
+  const singleEstimate = single ? estimateSection(model, sections[0], wpm) : null;
 
   return (
     <div>
@@ -311,6 +313,7 @@ export function DocumentProcessor({ initial, initialSections, model, aiReady }: 
             onToggle={toggle}
             onSelectAll={selectAll}
             model={model}
+            wpm={wpm}
             disabled={p.running}
             workingOn={p.workingOn}
           />

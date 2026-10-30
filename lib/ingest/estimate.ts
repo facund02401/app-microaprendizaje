@@ -1,3 +1,4 @@
+import { DEFAULT_READING_WPM } from "@/lib/reading-pace";
 import type { SectionRow } from "@/types";
 
 /** Precios en USD por millón de tokens (entrada, salida). Revisar si cambian. */
@@ -11,9 +12,6 @@ const PRICES: Record<string, [number, number]> = {
 export const WINDOW_WORDS = 6000;
 const TOKENS_PER_WORD = 1.7;
 export const WORDS_PER_SCANNED_PAGE = 380;
-/** Lectura analítica densa (docs/02), igual que estimatedMinutes en types. */
-const READING_WPM = 80;
-
 export interface Estimate {
   usd: number;
   processingMinutes: number;
@@ -21,7 +19,12 @@ export interface Estimate {
 }
 
 /** Costo y tiempos de procesar `words` palabras con texto y `ocrPages` páginas escaneadas. */
-export function estimateWork(model: string, words: number, ocrPages: number): Estimate {
+export function estimateWork(
+  model: string,
+  words: number,
+  ocrPages: number,
+  wpm = DEFAULT_READING_WPM
+): Estimate {
   const [pin, pout] = PRICES[model] ?? PRICES["claude-opus-5"];
   const totalWords = words + ocrPages * WORDS_PER_SCANNED_PAGE;
   const windows = Math.max(1, Math.ceil(totalWords / WINDOW_WORDS));
@@ -35,16 +38,16 @@ export function estimateWork(model: string, words: number, ocrPages: number): Es
   return {
     usd: ((segIn + ocrIn) * pin + (segOut + ocrOut) * pout) / 1_000_000,
     processingMinutes: windows * 1.5 + ocrBatches * 1.2,
-    readingMinutes: totalWords / READING_WPM,
+    readingMinutes: totalWords / wpm,
   };
 }
 
 /** Estimación de una sección del índice (0 si ya está procesada). */
-export function estimateSection(model: string, s: SectionRow): Estimate {
-  if (s.status === "done") return { usd: 0, processingMinutes: 0, readingMinutes: s.words / READING_WPM };
+export function estimateSection(model: string, s: SectionRow, wpm = DEFAULT_READING_WPM): Estimate {
+  if (s.status === "done") return { usd: 0, processingMinutes: 0, readingMinutes: s.words / wpm };
   const pending = Math.max(0, s.ocr_pages - s.ocr_done);
   const textWords = s.kind === "pages" ? Math.max(0, s.words - s.ocr_pages * WORDS_PER_SCANNED_PAGE) : s.words;
-  return estimateWork(model, textWords, pending);
+  return estimateWork(model, textWords, pending, wpm);
 }
 
 export function sumEstimates(list: Estimate[]): Estimate {

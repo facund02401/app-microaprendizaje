@@ -15,13 +15,14 @@ interface Props {
   position?: number;
   nearEnd: boolean;
   atEnd: boolean;
+  wpm?: number;
 }
 
 /**
  * Lectura por partes (docs/10 D12): cerca del final de lo preparado, prepara
  * sola la siguiente parte de la lista del lector; al final, ofrece seguir.
  */
-export function ContinuePanel({ documentId, processing, position, nearEnd, atEnd }: Props) {
+export function ContinuePanel({ documentId, processing, position, nearEnd, atEnd, wpm }: Props) {
   const router = useRouter();
   const p = useProcessing(documentId, { sections: processing.sections }, () => router.refresh());
   const attempted = useRef(new Set<number>());
@@ -52,7 +53,7 @@ export function ContinuePanel({ documentId, processing, position, nearEnd, atEnd
     await p.run({ section: section.idx, until: "section" });
   }
 
-  const est = nextAvailable ? estimateSection(processing.model, nextAvailable) : null;
+  const est = nextAvailable ? estimateSection(processing.model, nextAvailable, wpm) : null;
 
   return (
     <aside

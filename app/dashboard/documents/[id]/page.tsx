@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { DocumentProcessor } from "@/components/upload/DocumentProcessor";
 import { CLAUDE_MODEL, aiConfigured } from "@/lib/ai/claude";
+import { loadReadingWpm } from "@/lib/reading-pace-server";
 import { getUser } from "@/lib/supabase/server";
 import { SECTION_COLUMNS, type DocumentRow, type SectionRow } from "@/types";
 
@@ -21,11 +22,10 @@ export default async function DocumentPage({ params }: Props) {
   const { data } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   const doc = data as DocumentRow;
-  const { data: sections } = await supabase
-    .from("document_sections")
-    .select(SECTION_COLUMNS)
-    .eq("document_id", id)
-    .order("idx");
+  const [{ data: sections }, wpm] = await Promise.all([
+    supabase.from("document_sections").select(SECTION_COLUMNS).eq("document_id", id).order("idx"),
+    loadReadingWpm(supabase),
+  ]);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -40,6 +40,7 @@ export default async function DocumentPage({ params }: Props) {
             initialSections={(sections ?? []) as SectionRow[]}
             model={CLAUDE_MODEL}
             aiReady={aiConfigured()}
+            wpm={wpm}
           />
         </div>
       </main>
