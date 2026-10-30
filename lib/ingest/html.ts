@@ -1,5 +1,13 @@
-import { parse, type HTMLElement, NodeType } from "node-html-parser";
-import { HEADING_PREFIX, NOTE_PREFIX, normalizeSpaces } from "./text";
+import { parse, type HTMLElement, type Node, NodeType } from "node-html-parser";
+import {
+  HEADING_PREFIX,
+  isNoteLabel,
+  makeNote,
+  normalizeNoteLabel,
+  normalizeSpaces,
+  placeNotes,
+  splitNoteLabel,
+} from "./text";
 
 const BLOCKS = new Set([
   "p", "div", "li", "blockquote", "section", "article", "td", "dd", "dt",
@@ -19,10 +27,26 @@ function isNote(el: HTMLElement): boolean {
   return /footnote|endnote|rearnote|doc-footnote|doc-endnote/.test(marker);
 }
 
+/** Texto de un bloque, con las llamadas de nota (<sup>1</sup>) como [^1] y sin los "volver ↑". */
+function inlineText(node: Node): string {
+  if (node.nodeType === NodeType.TEXT_NODE) return node.textContent;
+  if (node.nodeType !== NodeType.ELEMENT_NODE) return "";
+  const el = node as HTMLElement;
+  const tag = el.tagName?.toLowerCase() ?? "";
+  if (SKIP.has(tag)) return "";
+  const text = el.textContent.trim();
+  const link = tag === "a" && (el.getAttribute("href") ?? "").startsWith("#");
+  if (link && /^[↑↩↵⏎^]+$/.test(text)) return "";
+  if ((tag === "sup" || link) && isNoteLabel(text)) return `[^${normalizeNoteLabel(text)}]`;
+  return el.childNodes.map(inlineText).join("");
+}
+
 /** HTML (de Word o EPUB) → párrafos con la convención de lib/ingest/text. */
 export function htmlToParagraphs(html: string): string[] {
   const root = parse(html, { blockTextElements: { pre: true } });
   const out: string[] = [];
+  // Notas sin número propio (p. ej. <li> de Word): se numeran por orden de aparición.
+  let unlabeled = 0;
 
   function walk(el: HTMLElement, inNote: boolean) {
     const tag = el.tagName?.toLowerCase() ?? "";
@@ -30,10 +54,13 @@ export function htmlToParagraphs(html: string): string[] {
     const note = inNote || isNote(el);
 
     if (BLOCKS.has(tag) && !hasBlockChild(el)) {
-      const text = normalizeSpaces(el.textContent);
+      const text = normalizeSpaces(inlineText(el));
       if (!text) return;
       if (HEADINGS.has(tag)) out.push(HEADING_PREFIX + text);
-      else out.push((note ? NOTE_PREFIX : "") + text);
+      else if (note) {
+        const split = splitNoteLabel(text);
+        out.push(makeNote(split.label ?? String(++unlabeled), split.text));
+      } else out.push(text);
       return;
     }
     for (const child of el.childNodes) {
@@ -47,5 +74,5 @@ export function htmlToParagraphs(html: string): string[] {
   }
 
   walk(root, false);
-  return out;
+  return placeNotes(out);
 }

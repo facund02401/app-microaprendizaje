@@ -1,5 +1,5 @@
 import type { PagedParagraph, PdfAnalysis } from "./pdf";
-import { HEADING_PREFIX, NOTE_PREFIX, countWords } from "./text";
+import { HEADING_PREFIX, countWords, isNote } from "./text";
 
 /** Sección del índice antes de guardarse (ver tabla document_sections). */
 export interface SectionDraft {
@@ -29,7 +29,7 @@ interface Raw {
 }
 
 function previewOf(paras: string[]): string | null {
-  const body = paras.find((p) => !p.startsWith(HEADING_PREFIX) && !p.startsWith(NOTE_PREFIX));
+  const body = paras.find((p) => !p.startsWith(HEADING_PREFIX) && !isNote(p));
   if (!body) return null;
   const words = body.split(/\s+/);
   return words.slice(0, 14).join(" ") + (words.length > 14 ? "…" : "");
@@ -68,7 +68,7 @@ function splitHuge(list: Raw[], paras: string[]): Raw[] {
     let words = 0;
     for (let i = s.start; i < s.end; i++) {
       const w = countWords(paras[i]);
-      if (words > 0 && words + w > CHUNK_WORDS && !paras[i].startsWith(NOTE_PREFIX)) {
+      if (words > 0 && words + w > CHUNK_WORDS && !isNote(paras[i])) {
         pieces.push({ start, end: i, titles: s.titles, words });
         start = i;
         words = 0;

@@ -134,3 +134,11 @@
 - **Código:** `lib/reading-pace.ts` (reglas puras), `lib/reading-pace-server.ts` (carga), `components/reader/useReadingTimer.ts` (medidor).
 - **Límite conocido:** quien lee sin tocar nada más de 120 s seguidos queda subcontado y el ritmo estimado sale algo más rápido. Si pasa, subir más `IDLE_PAUSE_SECONDS` (hoy 120 s).
 - **Revertir:** quitar `useReadingTimer` de `ReaderView`; los tiempos vuelven al 80 si se borran las filas de `node_reading_times`.
+
+### D21 — Notas al pie ligadas a su número *(pedido del dueño, 2026-10-30)*
+- **Problema:** la nota era un párrafo suelto en letra chica al final de la página, sin vínculo con el numerito del texto (que quedaba pegado a la palabra) y a veces lejos de donde se la cita.
+- **Qué hace:** la llamada del autor pasa a `[^3]` en el texto y la nota a `[nota 3] …`, ubicada justo después del párrafo que la cita. El lector muestra el número como superíndice; al tocarlo (o Enter) abre la nota en un globito, como el glosario. El texto queda limpio y las notas con pareja no ocupan lugar.
+- **Cómo se detecta:** PDF con texto: número chico y elevado en medio del renglón (`lib/ingest/pdf.ts`), emparejado dentro de su página (la numeración reinicia por página). Escaneados: el prompt de OCR pide `[^N]`. Word/EPUB: `<sup>`/enlaces a `#` (`lib/ingest/html.ts`), y `placeNotes` acomoda notas que vienen juntas (p. ej. al final).
+- **Sin pareja:** una llamada sin nota se ve como número tenue; una nota sin llamada sigue como bloque en letra chica. Lo ya preparado (`[nota] …`) se ve igual que antes.
+- **Además:** las notas no cuentan en los minutos estimados; la voz alta las salta y no lee los números.
+- **Alcance:** solo lo que se prepare después. Sin migración. Para rehacer un libro viejo hay que volver a prepararlo.

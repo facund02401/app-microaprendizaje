@@ -132,3 +132,9 @@
 - **Contexto:** El dueño pidió invertir el orden de la hoja exportada: que primero se vea lo resaltado/subrayado del nodo y debajo las notas (antes iba notas primero, subrayados después).
 - **Qué se hizo:** En `lib/export/notes-pdf.ts`, dentro del loop por nodo de `buildNotesPdf`, se movió el bloque "Pasajes subrayados" antes del bloque "Mis notas" (la sección "Pregunta"/"Mi respuesta" queda igual, al principio).
 - **Cómo se verificó:** `npm run lint` y `npm run build` sin errores. Verificación visual pendiente de hacer en el navegador: abrir un documento con subrayados y notas en algún nodo y exportar el PDF (`/api/documents/[id]/export`) para confirmar el nuevo orden.
+
+### 2026-10-30 — Notas al pie ligadas a su número (docs/10 D21)
+- **Contexto:** las notas eran párrafos sueltos sin vínculo con el número del texto.
+- **Qué se hizo:** convención `[^n]` + `[nota n]`, detección de superíndices en PDF, emparejado por página (`assemblePages`) y por orden (`placeNotes`), globito `NoteRef` en el lector. Archivos: `lib/ingest/{text,pdf,html}.ts`, `lib/ai/{ocr,prompts,segment}.ts`, `components/reader/{NoteRef,ReaderTextDisplay}.tsx`.
+- **Cómo se verificó:** `lint` y `build` sin errores; PDF de prueba generado con pdf-lib (superíndices + notas) pasa por `analyzePdf`/`assemblePages` y queda cada nota tras su párrafo; HTML de Word de ejemplo; en el navegador, el nodo 1 de "texto de prueba" (mock) abre la nota al tocar el 1. **Sin probar:** un escaneado real (depende de que Claude ponga `[^N]`) y un PDF/EPUB real del dueño.
+- **Lección práctica:** en este entorno `node_modules` puede faltar: `npm ci` primero. Para probar módulos sueltos: `NODE_PATH=$PWD/node_modules npx tsx script.ts`.

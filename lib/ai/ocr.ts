@@ -3,7 +3,7 @@ import { PDFDocument } from "pdf-lib";
 import { z } from "zod";
 import { askStructured, AiError } from "./claude";
 import { OCR_SYSTEM } from "./prompts";
-import { HEADING_PREFIX, NOTE_PREFIX, normalizeSpaces } from "@/lib/ingest/text";
+import { HEADING_PREFIX, noteFromRaw, normalizeSpaces } from "@/lib/ingest/text";
 import type { PageContent } from "@/lib/ingest/pdf";
 
 const OcrSchema = z.object({
@@ -47,6 +47,6 @@ export async function transcribePages(
       .map(normalizeSpaces)
       .filter(Boolean)
       .map((t) => (t.startsWith("#") ? HEADING_PREFIX + t.replace(/^#+\s*/, "") : t)),
-    notes: p.notes.map(normalizeSpaces).filter(Boolean).map((t) => NOTE_PREFIX + t),
+    notes: p.notes.map(normalizeSpaces).filter(Boolean).map(noteFromRaw),
   }));
 }
