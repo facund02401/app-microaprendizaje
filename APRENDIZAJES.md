@@ -127,3 +127,8 @@
 - **Contexto:** El ancho `max-w-[65ch]` estaba en el mismo elemento cuyo tamaño de fuente cambia con "Aa"; `ch` depende de la fuente, así que la columna se encogía en píxeles. Además título (28px) y etiqueta (13px) eran fijos.
 - **Corrección aplicada:** ancho fijo `max-w-[42rem]` en el artículo y en los bloques de debajo (reflexión, continuar, navegación, glosario); título `1.5em`, etiqueta `0.7em`, subtítulos `1.15em`, notas `0.85em`. Archivos: `components/reader/*`.
 - **Lección:** Nunca definir el ancho de columna en `ch` sobre un elemento con tamaño de fuente variable; y todo lo que acompaña al texto va en `em`, no en `px`.
+
+### 2026-10-30 — Orden de subrayados y notas en el PDF de apuntes
+- **Contexto:** El dueño pidió invertir el orden de la hoja exportada: que primero se vea lo resaltado/subrayado del nodo y debajo las notas (antes iba notas primero, subrayados después).
+- **Qué se hizo:** En `lib/export/notes-pdf.ts`, dentro del loop por nodo de `buildNotesPdf`, se movió el bloque "Pasajes subrayados" antes del bloque "Mis notas" (la sección "Pregunta"/"Mi respuesta" queda igual, al principio).
+- **Cómo se verificó:** `npm run lint` y `npm run build` sin errores. Verificación visual pendiente de hacer en el navegador: abrir un documento con subrayados y notas en algún nodo y exportar el PDF (`/api/documents/[id]/export`) para confirmar el nuevo orden.
